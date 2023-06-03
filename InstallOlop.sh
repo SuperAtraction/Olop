@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # URL du fichier ZIP à télécharger
-url="https://github.com/SuperAtraction/Olop/raw/main/Olop"
+url="https://raw.githubusercontent.com/SuperAtraction/Olop/main/Olop"
 
 # Chemin de destination pour le téléchargement et l'extraction
 destination="/opt/Olop/"

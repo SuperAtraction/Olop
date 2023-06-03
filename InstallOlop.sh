@@ -50,7 +50,7 @@ if command -v apt-get >/dev/null 2>&1; then
     # Utilisation du gestionnaire de paquets apt
     sudo apt-get update
     for dependency in $dependencies; do
-        package=$(dpkg -S $dependency | cut -d: -f1)
+        package=$(dpkg-query -S $dependency 2>/dev/null | cut -d: -f1)
         if [ -n "$package" ]; then
             sudo apt-get install --reinstall -y $package
         fi

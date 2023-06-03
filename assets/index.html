@@ -87,7 +87,7 @@
 			$("#button-update").html("Recherche de mises à jours...")
 					$("#info1").show("slide");
 			$.ajax({
-                                url:"http://olopsytems.000webhostapp.com/Checkupdate.php?ver=alpha-1.1" , data: {id : $(this).attr("id")} ,dataType: "text" , success: function(recup){
+                                url:"http://olopsytems.000webhostapp.com/Checkupdate.php?ver=alpha-1.0" , data: {id : $(this).attr("id")} ,dataType: "text" , success: function(recup){
 					console.log(recup);
 					if(recup.indexOf("0")!==-1){
 						$("#button-update").html("Aucune mise à jour disponible.<button onclick=\"mask(1);\">x</button>")

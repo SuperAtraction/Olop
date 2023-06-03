@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/">
+        <file>assets/certificate.crt</file>
+        <file>assets/private.key</file>
+        <file>assets/qt-logo.png</file>
+        <file>assets/home.html</file>
+        <file>assets/index.html</file>
+        <file>assets/jquery.js</file>
+        <file>assets/olop.ico</file>
+        <file>assets/Library.html</file>
+        <file>assets/Library/Addapp.html</file>
+        <file>assets/Store.html</file>
+        <file>assets/linux.js</file>
+    </qresource>
+</RCC>

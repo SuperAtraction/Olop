@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>assets/Zoom.png</file>
+        <file>assets/ZoomL.png</file>
+        <file>assets/Language.png</file>
+        <file>assets/BasicSettings.png</file>
+        <file>assets/GPU Settings.png</file>
+        <file>assets/ToolboxSettings.png</file>
+        <file>assets/olop.ico</file>
+        <file>assets/Settings.png</file>
+        <file alias="fluent_dark.qss">assets/Themes/Fluent Dark.qss</file>
+    </qresource>
+</RCC>

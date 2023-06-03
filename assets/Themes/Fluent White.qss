@@ -1,0 +1,131 @@
+/* Appliquer les styles globaux à l'application */
+* {
+    font-family: Segoe UI, Arial, sans-serif;
+    font-size: 14px;
+    color: #474747;
+}
+
+/* Styles pour les fenêtres principales */
+QMainWindow {
+    background-color: #FFFFFF;
+}
+
+/* Styles pour les boutons */
+QPushButton {
+    background-color: #FFFFFF;
+    color: #474747;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+QPushButton:hover {
+    background-color: #f2f2f2;
+}
+
+QPushButton:pressed {
+    background-color: #E5E5E5;
+}
+
+QPushButton:disabled {
+    background-color: #F7F7F7;
+    color: #707070;
+}
+
+/* Styles pour les zones de texte */
+QLineEdit, QTextEdit {
+    background-color: #FFFFFF;
+    color: #474747;
+    border: 1px solid #CCCCCC;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+/* Styles pour les étiquettes */
+QLabel {
+    color: #474747;
+}
+
+/* Styles pour les menus déroulants */
+QComboBox {
+    background-color: #FFFFFF;
+    color: #474747;
+    border: 1px solid #CCCCCC;
+    border-radius: 4px;
+    padding: 4px;
+    min-width: 100px;
+}
+
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left-width: 1px;
+    border-left-color: #CCCCCC;
+    border-left-style: solid;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    background: transparent;
+}
+
+/* Styles pour les cases à cocher */
+QCheckBox {
+    color: #474747;
+}
+
+QCheckBox::indicator {
+    width: 14px;
+    height: 14px;
+}
+
+/* Styles pour les radios boutons */
+QRadioButton {
+    color: #474747;
+}
+
+QRadioButton::indicator {
+    width: 14px;
+    height: 14px;
+}
+
+QRadioButton:hover {
+    background-color: #f2f2f2;
+}
+
+/* Styles pour les barres de progression */
+QProgressBar {
+    background-color: #FFFFFF;
+    border: 1px solid #CCCCCC;
+    border-radius: 4px;
+    height: 8px;
+    text-align: center;
+}
+
+QProgressBar::chunk {
+    background-color: #0078D7;
+    width: 1px;
+}
+
+/* Styles pour les barres de défilement */
+QScrollBar {
+    background-color: #F8F8F8;
+    width: 12px;
+}
+
+QScrollBar::handle {
+    background-color: #CCCCCC;
+    border-radius: 6px;
+}
+
+QScrollBar::handle:hover {
+    background-color: #999999;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line {
+    background: none;
+}
+
+QScrollBar::add-page, QScrollBar::sub-page {
+    background: none;
+}

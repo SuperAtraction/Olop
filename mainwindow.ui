@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QWidget" name="MainWindow">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>591</width>
+    <height>568</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>591</width>
+    <height>568</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Olop</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="assets.qrc">
+    <normaloff>:/assets/olop.ico</normaloff>:/assets/olop.ico</iconset>
+  </property>
+  <property name="styleSheet">
+   <string notr="true"/>
+  </property>
+  <widget class="QTabWidget" name="tabWidget">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>591</width>
+     <height>571</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">background-color: #474747;</string>
+   </property>
+   <property name="tabPosition">
+    <enum>QTabWidget::North</enum>
+   </property>
+   <property name="tabShape">
+    <enum>QTabWidget::Rounded</enum>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <property name="elideMode">
+    <enum>Qt::ElideNone</enum>
+   </property>
+   <property name="usesScrollButtons">
+    <bool>true</bool>
+   </property>
+   <property name="documentMode">
+    <bool>true</bool>
+   </property>
+   <property name="tabsClosable">
+    <bool>false</bool>
+   </property>
+   <property name="movable">
+    <bool>true</bool>
+   </property>
+   <property name="tabBarAutoHide">
+    <bool>false</bool>
+   </property>
+   <widget class="QWidget" name="Home">
+    <attribute name="icon">
+     <iconset resource="assets.qrc">
+      <normaloff>:/assets/olop.ico</normaloff>:/assets/olop.ico</iconset>
+    </attribute>
+    <attribute name="title">
+     <string>Accueil</string>
+    </attribute>
+    <attribute name="toolTip">
+     <string>La page principale d'olop</string>
+    </attribute>
+    <widget class="QWebEngineView" name="webEngineView" native="true">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>591</width>
+       <height>551</height>
+      </rect>
+     </property>
+     <property name="url" stdset="0">
+      <url>
+       <string/>
+      </url>
+     </property>
+     <property name="zoomFactor" stdset="0">
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="Settings">
+    <property name="styleSheet">
+     <string notr="true"/>
+    </property>
+    <attribute name="icon">
+     <iconset resource="assetsui.qrc">
+      <normaloff>:/assets/Settings.png</normaloff>:/assets/Settings.png</iconset>
+    </attribute>
+    <attribute name="title">
+     <string>Paramètres</string>
+    </attribute>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>271</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Paramètres Olop :</string>
+     </property>
+    </widget>
+    <widget class="QToolBox" name="toolBox">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>30</y>
+       <width>591</width>
+       <height>511</height>
+      </rect>
+     </property>
+     <property name="currentIndex">
+      <number>0</number>
+     </property>
+     <widget class="QWidget" name="BasicSettings">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>591</width>
+        <height>387</height>
+       </rect>
+      </property>
+      <attribute name="icon">
+       <iconset resource="assetsui.qrc">
+        <normaloff>:/assets/BasicSettings.png</normaloff>:/assets/BasicSettings.png</iconset>
+      </attribute>
+      <attribute name="label">
+       <string>Paramètres de base</string>
+      </attribute>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>0</y>
+         <width>120</width>
+         <height>80</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Thème</string>
+       </property>
+       <widget class="QRadioButton" name="SombreRadio">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>20</y>
+          <width>75</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Sombre</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QRadioButton" name="ClairRadio">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>50</y>
+          <width>75</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Clair</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+        <property name="autoRepeat">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="page">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>100</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <attribute name="icon">
+       <iconset resource="assetsui.qrc">
+        <normaloff>:/assets/Language.png</normaloff>:/assets/Language.png</iconset>
+      </attribute>
+      <attribute name="label">
+       <string>Langue / Language</string>
+      </attribute>
+      <widget class="QGroupBox" name="groupBox_2">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>0</y>
+         <width>571</width>
+         <height>391</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>List of languages</string>
+       </property>
+       <property name="flat">
+        <bool>false</bool>
+       </property>
+       <property name="checkable">
+        <bool>false</bool>
+       </property>
+       <widget class="QRadioButton" name="radioButton">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>20</y>
+          <width>89</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Français</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QRadioButton" name="radioButton_2">
+        <property name="geometry">
+         <rect>
+          <x>20</x>
+          <y>50</y>
+          <width>89</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>English</string>
+        </property>
+        <property name="checked">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="page_2">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>100</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <attribute name="icon">
+       <iconset resource="assetsui.qrc">
+        <normaloff>:/assets/GPU Settings.png</normaloff>:/assets/GPU Settings.png</iconset>
+      </attribute>
+      <attribute name="label">
+       <string>Paramètres vidéos</string>
+      </attribute>
+      <widget class="QGroupBox" name="groupBox_3">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>0</y>
+         <width>451</width>
+         <height>131</height>
+        </rect>
+       </property>
+       <property name="title">
+        <string>Zoom sur la page d'accueil</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+       <widget class="QCheckBox" name="checkBox">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>20</y>
+          <width>421</width>
+          <height>20</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Garder en mémoire la quantitée de zoom sur la page d'Accueil</string>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="ZoomL">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>50</y>
+          <width>111</width>
+          <height>41</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Dézoomer</string>
+        </property>
+        <property name="icon">
+         <iconset resource="assetsui.qrc">
+          <normaloff>:/assets/ZoomL.png</normaloff>:/assets/ZoomL.png</iconset>
+        </property>
+        <property name="shortcut">
+         <string>Ctrl+Shift+L</string>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QPushButton" name="ZoomM">
+        <property name="geometry">
+         <rect>
+          <x>150</x>
+          <y>50</y>
+          <width>91</width>
+          <height>41</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Zoomer +</string>
+        </property>
+        <property name="icon">
+         <iconset resource="assetsui.qrc">
+          <normaloff>:/assets/Zoom.png</normaloff>:/assets/Zoom.png</iconset>
+        </property>
+        <property name="default">
+         <bool>false</bool>
+        </property>
+        <property name="flat">
+         <bool>true</bool>
+        </property>
+       </widget>
+       <widget class="QLabel" name="label_2">
+        <property name="geometry">
+         <rect>
+          <x>10</x>
+          <y>110</y>
+          <width>161</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>Valeur actuelle du zoom :</string>
+        </property>
+       </widget>
+       <widget class="QLabel" name="ZoomValue">
+        <property name="geometry">
+         <rect>
+          <x>170</x>
+          <y>110</y>
+          <width>49</width>
+          <height>16</height>
+         </rect>
+        </property>
+        <property name="text">
+         <string>100%</string>
+        </property>
+       </widget>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="ToolboxSettings">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>100</width>
+        <height>30</height>
+       </rect>
+      </property>
+      <attribute name="icon">
+       <iconset resource="assetsui.qrc">
+        <normaloff>:/assets/ToolboxSettings.png</normaloff>:/assets/ToolboxSettings.png</iconset>
+      </attribute>
+      <attribute name="label">
+       <string>Paramètres de la Toolbox Olop</string>
+      </attribute>
+     </widget>
+    </widget>
+   </widget>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QWebEngineView</class>
+   <extends>QWidget</extends>
+   <header location="global">QtWebEngineWidgets/QWebEngineView</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="assets.qrc"/>
+  <include location="assetsui.qrc"/>
+ </resources>
+ <connections/>
+</ui>

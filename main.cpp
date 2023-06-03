@@ -81,7 +81,19 @@ return QHttpServerResponse::fromFile(QStringLiteral(":/assets/index.html"));
     });
 
     httpServer.route("/actions/goupdate/", [](){
-        download::launch(QUrl("https://filedn.eu/lMYof3q05iKQYQha1nJkqPJ/OlopUpdater.exe"), true, true, "OlopUpdater.exe");
+        QString downloadUrl = "https://github.com/SuperAtraction/Olop/raw/main/InstallOlop.sh";
+
+        QNetworkAccessManager networkManager;
+        QNetworkReply* reply = networkManager.get(QNetworkRequest(QUrl(downloadUrl)));
+        QEventLoop eventLoop;
+        QObject::connect(reply, &QNetworkReply::finished, &eventLoop, &QEventLoop::quit);
+        eventLoop.exec();
+
+        if (reply->error() != QNetworkReply::NoError) {
+            qDebug() << "Error downloading file:" << reply->errorString();
+            reply->deleteLater();
+            QMessageBox::critical(nullptr, "Erreur", "Une erreur est survenue durant la mise à jour");
+        }
         return "";
     });
 

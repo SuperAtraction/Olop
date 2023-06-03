@@ -79,5 +79,6 @@ else
 fi
 
 chmod +x $executable
+chmod -R a+rw /opt/Olop/
 
 exit

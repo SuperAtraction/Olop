@@ -87,13 +87,13 @@
 			$("#button-update").html("Recherche de mises à jours...")
 					$("#info1").show("slide");
 			$.ajax({
-                                url:"http://olopsytems.000webhostapp.com/Checkupdate.php?ver=alpha-1.0" , data: {id : $(this).attr("id")} ,dataType: "text" , success: function(recup){
+                                url:"http://olopsytems.000webhostapp.com/Checkupdate.php?ver=alpha-1.1" , data: {id : $(this).attr("id")} ,dataType: "text" , success: function(recup){
 					console.log(recup);
 					if(recup.indexOf("0")!==-1){
 						$("#button-update").html("Aucune mise à jour disponible.<button onclick=\"mask(1);\">x</button>")
 					}else
 					{
-						$("#button-update").html("Mise à jour disponible. Souhaitez-vous la télécharger ? <button onClick=\"install();\">Oui</button><button onclick=\"mask(1);\">Non</button>");
+						$("#button-update").html("Mise à jour disponible. Merci de la télécharger."/*<button onClick=\"install();\">Oui</button><button onclick=\"mask(1);\">Non</button>"*/);
 					}
 				}, error: function (xhr, ajaxOptions, thrownError) {
 					$("#button-update").html("Une erreur est survenue lors de la vérification de mises à jours, veuillez vérifier votre connexion internet.<button onclick=\"update();\">Rééssayer</button><button onclick=\"mask(1);\">x</button>"); //Ce code affichera le message d'erreur, ici Message d'erreur.

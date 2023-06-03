@@ -12,6 +12,24 @@ executable=$destination"Olop"
 if [ "$EUID" -ne 0 ]
   then echo "Exécuction en root"
   pkexec $0
+  echo "Création du raccourci"
+  # Créer le fichier de raccourci
+shortcut_file="$HOME/.local/share/applications/olop.desktop"
+
+cat > "$shortcut_file" <<EOF
+[Desktop Entry]
+Name=Olop
+Exec=/opt/Olop/Olop
+Icon=/opt/Olop/Olop.png
+Terminal=false
+Type=Application
+Categories=Utility;
+EOF
+
+# Mettre les permissions appropriées sur le fichier de raccourci
+chmod +x "$shortcut_file"
+
+echo "Le raccourci pour Olop a été créé dans le menu Démarrer."
   echo "Olop et ses dépendances ont étés installés avec succés. Olop va se lancer automatiquement"
   $executable
   exit

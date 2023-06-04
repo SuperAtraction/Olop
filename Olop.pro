@@ -12,14 +12,20 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    Tabs/newtab.cpp \
+    Tabs/settings.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     Download.h \
+    Tabs/newtab.h \
+    Tabs/settings.h \
     mainwindow.h
 
 FORMS += \
+    Tabs/newtab.ui \
+    Tabs/settings.ui \
     mainwindow.ui
 
 # Default rules for deployment.

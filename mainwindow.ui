@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>591</width>
-    <height>568</height>
+    <height>572</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -35,7 +35,7 @@
      <x>0</x>
      <y>0</y>
      <width>591</width>
-     <height>571</height>
+     <height>572</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -48,7 +48,7 @@
     <enum>QTabWidget::Rounded</enum>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
    <property name="elideMode">
     <enum>Qt::ElideNone</enum>
@@ -57,10 +57,10 @@
     <bool>true</bool>
    </property>
    <property name="documentMode">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="tabsClosable">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="movable">
     <bool>true</bool>
@@ -132,7 +132,7 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>2</number>
      </property>
      <widget class="QWidget" name="BasicSettings">
       <property name="geometry">
@@ -207,8 +207,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>100</width>
-        <height>30</height>
+        <width>591</width>
+        <height>387</height>
        </rect>
       </property>
       <attribute name="icon">
@@ -275,8 +275,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>100</width>
-        <height>30</height>
+        <width>591</width>
+        <height>387</height>
        </rect>
       </property>
       <attribute name="icon">

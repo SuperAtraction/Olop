@@ -23,8 +23,7 @@ jobs:
 
     - name: Configure and build
       run: |
-        qmake -project Olop.pro
-        qmake
+        qmake Olop.pro
         nmake
 
     - name: Compile

@@ -35,6 +35,3 @@ jobs:
       with:
         name: Built Application
         path: Olop.exe
-
-    - name: Display artifact download link
-      run: echo "Download the built application here: ${{ steps.artifacts.outputs.artifact_download_url }}"

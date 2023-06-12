@@ -33,7 +33,6 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Built Application
-        path: <chemin_vers_le_fichier_exécutable>
+        path: Olop.exe
 
     - name: Display artifact download link
-      run: echo "Download the built application here: ${{ steps.artifacts.outputs.artifact_download_url }}"

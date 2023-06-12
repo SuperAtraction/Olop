@@ -1,0 +1,40 @@
+name: Build Application
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: '5.15.2'
+        components: 'qt5112'
+
+    - name: Configure and build
+      run: |
+        qmake -project Olop.pro
+        qmake
+        nmake
+
+    - name: Compile
+      run: nmake
+
+    - name: Archive artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: Built Application
+        path: <chemin_vers_le_fichier_exécutable>
+
+    - name: Display artifact download link
+      run: echo "Download the built application here: ${{ steps.artifacts.outputs.artifact_download_url }}"

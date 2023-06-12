@@ -13,21 +13,22 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
     - name: Set up Qt
       uses: jurplel/install-qt-action@v2
       with:
-        version: '5.15.2'
-        components: 'qt5112'
+        version: '6.5.0'
+        components: 'qt-tools qtnetworkauth'
 
     - name: Configure and build
       run: |
         qmake Olop.pro
-        nmake
+        make
 
     - name: Compile
-      run: nmake
+      run: make
 
     - name: Archive artifacts
       uses: actions/upload-artifact@v2
@@ -36,3 +37,4 @@ jobs:
         path: Olop.exe
 
     - name: Display artifact download link
+      run: echo "Download the built application here: ${{ steps.artifacts.outputs.artifact_download_url }}"

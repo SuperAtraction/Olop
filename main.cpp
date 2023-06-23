@@ -4,7 +4,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QTimer>
-#include "Download.h"
+#include <QHttpServer>
 #include "mainwindow.h"
 
 static inline QString host(const QHttpServerRequest &request)
@@ -73,11 +73,7 @@ return QHttpServerResponse::fromFile(QStringLiteral(":/assets/index.html"));
     });
 
     httpServer.route("/olop.ico", []() {
-        QString fileName = QStringLiteral("root/olop.ico");
-        QFile fichier(fileName);
-        fichier.open(QIODevice::ReadOnly | QIODevice::Text);
-        QTextStream flux(&fichier);
-        return flux.readAll();
+        return QHttpServerResponse::fromFile(QStringLiteral(":/assets/olop.ico"));
     });
 
     httpServer.route("/actions/goupdate/", [](){
@@ -167,7 +163,7 @@ return QHttpServerResponse::fromFile(QStringLiteral(":/assets/index.html"));
     }
     qDebug() << port;
 
-    MainWindow *w = new MainWindow(nullptr, "http://localhost:"+QString::number(port)+"/index.html");
+    MainWindow *w = new MainWindow("http://localhost:"+QString::number(port)+"/index.html");
     w->show();
     return app.exec();
 }

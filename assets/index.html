@@ -1,142 +1,318 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<meta charset="UTF-8">
-	<title>Olop Launcher</title>
-	<style>
-		body {
-			margin: 0;
-			padding: 0;
-			font-family: Arial, sans-serif;
-			background-color: #282c34;
-			color: #fff;
-			display: flex;
-		}
+    <meta charset="UTF-8">
+    <title>Olop App</title>
+    <style>
+        /* Styles CSS */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+        }
 
-		#launcher {
-			width: 200px;
-			height: 100vh;
-			background-color: #333;
-			color: #fff;
-			padding: 20px;
-			box-sizing: border-box;
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			justify-content: space-between;
-		}
+        #sidebar {
+            background-color: #ffffff;
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
 
-		h1 {
-			font-size: 1.5em;
-			margin: 0 0 10px 0;
-		}
+        #sidebar.hidden {
+            transform: translateX(-250px);
+        }
 
-		ul {
-			list-style: none;
-			padding: 0;
-			margin: 0;
-		}
+        #sidebar h1 {
+            text-align: center;
+            margin-top: 20px;
+            color: #007bff;
+        }
 
-		li {
-			margin-bottom: 10px;
-		}
+        #sidebar ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px 0;
+        }
 
-		#launcher a {
-			color: #fff;
-			text-decoration: none;
-			font-size: 1.2em;
-			display: block;
-			padding: 5px;
-			border-radius: 5px;
-			transition: background-color 0.3s ease-in-out;
-		}
+        #sidebar ul li {
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
 
-		#launcher a:hover {
-			background-color: #fff;
-			color: #333;
-		}
+        #sidebar ul li:hover {
+            background-color: #007bff;
+            color: #ffffff;
+        }
 
-		#content {
-			flex-grow: 1;
-			padding: 20px;
-		}
+        #content {
+            margin-left: 250px;
+            padding: 20px;
+            padding-left: 50px;
+            display: none;
+            transition: margin-left 0.3s ease;
+        }
 
-		#stop {
-			color: red;
-			font-weight: bold;
-			margin-bottom: 20px;
-		}
-	</style>
-        <script src="jquery.js"></script>
-	<script type="text/javascript">
-		var page = 0;
-		$("#info1").hide();
-		function install(){
-		$("#content").html("<center>Arrêt...</center>");
-    	$("#button-update").load("/actions/goupdate/");
-    	setTimeout(function() {
-       		window.close();
-    		}, 1000);
-		}
+        #clock {
+            font-size: 20px;
+            color: #000000;
+            position: fixed;
+            bottom: 10px;
+            left: 20px;
+        }
 
-		function update(){
-                        $("#content").load("home.html");
-			setTimeout(function() {
-                                $("#applist").load("Applist.html")
-    		}, 200);
-			$("#button-update").html("Recherche de mises à jours...")
-					$("#info1").show("slide");
-			$.ajax({
-                                url:"http://olopsytems.000webhostapp.com/Checkupdate.php?ver=alpha-1.0" , data: {id : $(this).attr("id")} ,dataType: "text" , success: function(recup){
-					console.log(recup);
-					if(recup.indexOf("0")!==-1){
-						$("#button-update").html("Aucune mise à jour disponible.<button onclick=\"mask(1);\">x</button>")
-					}else
-					{
-						$("#button-update").html("Mise à jour disponible. Merci de la télécharger."/*<button onClick=\"install();\">Oui</button><button onclick=\"mask(1);\">Non</button>"*/);
-					}
-				}, error: function (xhr, ajaxOptions, thrownError) {
-					$("#button-update").html("Une erreur est survenue lors de la vérification de mises à jours, veuillez vérifier votre connexion internet.<button onclick=\"update();\">Rééssayer</button><button onclick=\"mask(1);\">x</button>"); //Ce code affichera le message d'erreur, ici Message d'erreur.
-}
+        #loader {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+        }
+
+        #toggleMenuBtn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 999;
+        }
+
+        #toggleMenuBtn button {
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            background-color: #ffffff;
+            color: #007bff;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #toggleMenuBtn button:hover {
+            background-color: #007bff;
+            color: #ffffff;
+        }
+
+        #toggleMenuBtn button.closed {
+            border-radius: 50%;
+        }
+
+        .notification-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .notification-container img {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+
+        .notification-container p {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .notification-container button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            outline: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .notification-container button:hover {
+            background-color: #0056b3;
+        }
+
+        .window {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .window-title-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .window-title-bar span {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .window-title-bar button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            outline: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .window-title-bar button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script>
+        // JavaScript
+        var notificationCount = 0;
+        var windowCount = 0;
+
+        // Chargement initial de la page "Home"
+        function loadPage(page) {
+            var loader = $("#loader");
+            var content = $("#content");
+            loader.show();
+            content.hide();
+
+            // Utiliser jQuery pour charger le contenu de la page
+            content.load(page + ".html", function(response, status, xhr) {
+                loader.hide();
+                if (status === "error") {
+                    showNotification("Erreur 404 : Page not found");
+                } else {
+                    content.show();
+                }
             });
-		}
+        }
 
-		function mask(message){
-			$("#info"+message).hide("slide");
-		}
+        // Afficher ou masquer le menu
+        function toggleMenu() {
+            var sidebar = document.getElementById("sidebar");
+            var toggleButton = document.getElementById("toggleMenuBtn");
+            var content = document.getElementById("content");
 
-		function loadpage(number){
-			page=number;
-			if(number==0){
-				$("#content").load("home.html");
-			setTimeout(function() {
-                                $("#applist").load("Applist.html")
-    		}, 200);
-			}else if(number==1){
-                                $("#content").load("Library.html")
-			}else if(number==2){
-                                $("#content").load("Store.html")
-			}
-		}
-		function addapp(){
-                $("#content").load("Library/Addapp.html");
-	}
-	</script>
+            sidebar.classList.toggle("hidden");
+            toggleButton.firstChild.classList.toggle("closed");
+
+            if (sidebar.classList.contains("hidden")) {
+                content.style.marginLeft = "0";
+            } else {
+                content.style.marginLeft = "250px";
+            }
+        }
+
+        // Mise à jour de l'horloge toutes les secondes
+        function updateTime() {
+            var clock = document.getElementById("clock");
+            var date = new Date();
+            var hours = date.getHours();
+            var minutes = date.getMinutes();
+            var seconds = date.getSeconds();
+            clock.innerHTML = hours + ":" + addLeadingZero(minutes) + ":" + addLeadingZero(seconds);
+            setTimeout(updateTime, 1000);
+        }
+
+        // Ajouter un zéro devant les chiffres < 10
+        function addLeadingZero(number) {
+            return (number < 10) ? "0" + number : number;
+        }
+
+        // Afficher une notification
+        function showNotification(message) {
+            var notificationContainer = document.createElement("div");
+            notificationContainer.className = "notification-container";
+            notificationContainer.innerHTML = '<img src="notification.png" alt="Notification" /><p>' + message + '</p><button onclick="closeNotification(this)">Fermer</button>';
+            document.body.appendChild(notificationContainer);
+            notificationCount++;
+        }
+
+        // Fermer une notification
+        function closeNotification(button) {
+            button.parentNode.remove();
+            notificationCount--;
+
+            // Masquer la barre de notifications si plus aucune notification
+            if (notificationCount === 0) {
+                document.getElementById("notificationBar").style.display = "none";
+            }
+        }
+
+        // Ouvrir une nouvelle fenêtre
+        function openWindow() {
+            var window = document.createElement("div");
+            window.className = "window";
+            window.innerHTML = '<div class="window-title-bar"><span>Fenêtre ' + (windowCount + 1) + '</span><button onclick="closeWindow(this)">Fermer</button></div><div class="window-content">Contenu de la fenêtre ' + (windowCount + 1) + '</div>';
+            document.body.appendChild(window);
+            windowCount++;
+        }
+
+        // Fermer une fenêtre
+        function closeWindow(button) {
+            button.parentNode.parentNode.remove();
+            windowCount--;
+        }
+        loadPage('Home')
+    </script>
+    <script src="jquery.js"></script>
 </head>
-<body onload="update();">
-	<div id="launcher">
-		<h1>Olop</h1>
-		<div id="info1" style="background-color:blue;color:white;"><div id="button-update"></div></div><br>
-		
-                <ul class="menu">
-			<li><a href="#" onclick="loadpage(0);">Accueil</a></li>
-			<li><a href="#" onclick="loadpage(1);">Bibliothèque</a></li>
-			<li><a href="#" onclick="loadpage(2);">Store</a></li>
-		</ul>
-		<a href="stop/"><div id="stop">Arrêt d'Olop</div></a>
-	</div>
-	<div id="content">
-		<h1><-- Sélectionnez un menu</h1>
-	</div>
+<body onload="loadPage('Home'); updateTime();">
+    <div id="sidebar">
+        <h1>Olop App</h1>
+        <ul>
+            <li onclick="loadPage('Home')">Accueil</li>
+            <li onclick="loadPage('Profil')">Profil</li>
+            <li onclick="loadPage('Paramètres')">Paramètres</li>
+        </ul>
+    </div>
+
+    <div id="content">
+    </div>
+
+    <div id="clock"></div>
+
+    <div id="loader">
+        <img src="Olop.png" alt="Loader">
+    </div>
+
+    <div id="toggleMenuBtn">
+        <button onclick="toggleMenu()">&#9776;</button>
+    </div>
+
+    <div id="notificationBar" style="display: none;">
+        Vous avez <span id="notificationCount"></span> notification(s) en attente. <button onclick="openNotifications()">Voir les notifications</button>
+    </div>
 </body>
 </html>

@@ -1,1 +1,12 @@
-<button onclick="addapp()">Ajouter des applications</button>
+<div id="port"></div>
+<script>
+    $("#port").html('Code <a onclick="WhatIsIt(1);" href="#">InstallPass</a> pour installer une application : '+location.port);
+
+    function WhatIsIt(number){
+        var message = "Houlà ! Il semblerait qu'Olop ne puisse pas afficher cette information...";
+        if(number===1){
+            message="InstallPass est la nouvelle méthode d'installation de programmes sans passer par un programme avec les mêmes questions : répertoire, lien sur le bureau...<br>Il vous suffit tout simplement de chercher le bouton \"Installer via InstallPass\" et d'entrer le code fourni pour installer votre application";
+        }
+        showNotification(message);
+    }
+</script>

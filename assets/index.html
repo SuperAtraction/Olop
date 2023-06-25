@@ -66,7 +66,13 @@
             position: fixed;
             bottom: 10px;
             left: 20px;
+            transition: left 0.3s ease, transform 0.3s ease;
         }
+
+        clock.open-left {
+    right: 20px;
+    transition: right 0.3s ease;
+}
 
         #loader {
             position: fixed;
@@ -194,6 +200,11 @@
         .window-title-bar button:hover {
             background-color: #0056b3;
         }
+
+        .content-shifted {
+            margin-left: 0;
+            transition: margin-left 0.3s ease;
+        }
     </style>
     <script>
         // JavaScript
@@ -202,37 +213,40 @@
 
         // Chargement initial de la page "Home"
         function loadPage(page) {
-            var loader = $("#loader");
-            var content = $("#content");
-            loader.show();
-            content.hide();
+    var loader = $("#loader");
+    var content = $("#content");
+    loader.show();
+    content.hide();
 
-            // Utiliser jQuery pour charger le contenu de la page
-            content.load(page + ".html", function(response, status, xhr) {
-                loader.hide();
-                if (status === "error") {
-                    showNotification("Erreur 404 : Page not found");
-                } else {
-                    content.show();
-                }
-            });
+    // Utiliser jQuery pour charger le contenu de la page
+    content.load(page + ".html", function(response, status, xhr) {
+        loader.hide();
+        if (status === "error") {
+            var errorMessage = "Erreur: " + xhr.status + " " + xhr.statusText;
+            showNotification(errorMessage);
+        } else {
+            content.show();
         }
+    });
+}
 
         // Afficher ou masquer le menu
         function toggleMenu() {
-            var sidebar = document.getElementById("sidebar");
-            var toggleButton = document.getElementById("toggleMenuBtn");
-            var content = document.getElementById("content");
+    var sidebar = document.getElementById("sidebar");
+    var toggleButton = document.getElementById("toggleMenuBtn");
+    var content = document.getElementById("content");
+    var clock = document.getElementById("clock");
 
-            sidebar.classList.toggle("hidden");
-            toggleButton.firstChild.classList.toggle("closed");
+    sidebar.classList.toggle("hidden");
+    toggleButton.classList.toggle("closed");
+    clock.classList.toggle("open-left"); // Ajoutez cette ligne pour ajouter ou supprimer la classe
 
-            if (sidebar.classList.contains("hidden")) {
-                content.style.marginLeft = "0";
-            } else {
-                content.style.marginLeft = "250px";
-            }
-        }
+    if (sidebar.classList.contains("hidden")) {
+        content.classList.add("content-shifted");
+    } else {
+        content.classList.remove("content-shifted");
+    }
+}
 
         // Mise à jour de l'horloge toutes les secondes
         function updateTime() {
@@ -241,7 +255,7 @@
             var hours = date.getHours();
             var minutes = date.getMinutes();
             var seconds = date.getSeconds();
-            clock.innerHTML = hours + ":" + addLeadingZero(minutes) + ":" + addLeadingZero(seconds);
+            clock.innerHTML = addLeadingZero(hours) + ":" + addLeadingZero(minutes) + ":" + addLeadingZero(seconds);
             setTimeout(updateTime, 1000);
         }
 
@@ -252,22 +266,32 @@
 
         // Afficher une notification
         function showNotification(message) {
-            var notificationContainer = document.createElement("div");
-            notificationContainer.className = "notification-container";
-            notificationContainer.innerHTML = '<img src="notification.png" alt="Notification" /><p>' + message + '</p><button onclick="closeNotification(this)">Fermer</button>';
-            document.body.appendChild(notificationContainer);
-            notificationCount++;
-        }
+    var notificationContainer = $('<div></div>').addClass('notification-container');
+    notificationContainer.html('<img src="Olop.png" alt="Notification" /><p>' + message + '</p><button onclick="closeNotification(this)">Fermer</button>');
+    $('body').append(notificationContainer);
+
+    var notificationBar = $('#notificationBar');
+    var notificationCountElement = $('#notificationCount');
+
+    notificationBar.hide();
+    notificationCount++;
+    notificationBar.css('display', 'block');
+    notificationCountElement.text(notificationCount);
+    notificationBar.fadeIn('slow');
+}
+
 
         // Fermer une notification
         function closeNotification(button) {
             button.parentNode.remove();
+            if (notificationCount === 1) {
+                $("#notificationBar").fadeOut("slow");
+                notificationCount=0;
+            }else{
             notificationCount--;
-
-            // Masquer la barre de notifications si plus aucune notification
-            if (notificationCount === 0) {
-                document.getElementById("notificationBar").style.display = "none";
             }
+            // Masquer la barre de notifications si plus aucune notification
+            document.getElementById("notificationCount").innerText = notificationCount;
         }
 
         // Ouvrir une nouvelle fenêtre
@@ -284,22 +308,44 @@
             button.parentNode.parentNode.remove();
             windowCount--;
         }
-        loadPage('Home')
+
+        function update(){
+                        $("#button-update").html("Recherche de mises à jours...")
+                                        $("#info1").show("slide");
+                        $.ajax({
+                                url:"https://olopsytems.000webhostapp.com/Checkupdate.php?ver=alpha-1.1" , data: {id : $(this).attr("id")} ,dataType: "text" , success: function(recup){
+                                        console.log(recup);
+                                        if(recup.indexOf("0")!==-1){
+                                                $("#button-update").html("Aucune mise à jour disponible.<button onclick=\"mask(1);\">x</button>")
+                                        }else
+                                        {
+                                                $("#button-update").html("Mise à jour disponible. Merci de la télécharger."/*<button onClick=\"install();\">Oui</button><button onclick=\"mask(1);\">Non</button>"*/);
+                                        }
+                                }, error: function (xhr, ajaxOptions, thrownError) {
+                                        $("#button-update").html("Une erreur est survenue lors de la vérification de mises à jours, veuillez vérifier votre connexion internet.<button onclick=\"update();\">Rééssayer</button><button onclick=\"mask(1);\">x</button>"); //Ce code affichera le message d'erreur, ici Message d'erreur.
+}
+            });
+                }
     </script>
     <script src="jquery.js"></script>
 </head>
-<body onload="loadPage('Home'); updateTime();">
+<body onload="loadPage('home'); updateTime();update();">
     <div id="sidebar">
-        <h1>Olop App</h1>
+        <h1>Olop</h1>
         <ul>
-            <li onclick="loadPage('Home')">Accueil</li>
-            <li onclick="loadPage('Profil')">Profil</li>
+            <li onclick="loadPage('home')">Accueil</li>
+            <li onclick="loadPage('Library')">Bibliothèque</li>
             <li onclick="loadPage('Paramètres')">Paramètres</li>
         </ul>
+        <div id="info1"><div id="button-update"></div></div><br>
+        <div id="notificationBar" style="display: none;">
+        Vous avez <span id="notificationCount"></span> notification(s).
+    </div>
     </div>
 
-    <div id="content">
+    <div id="content" class="content-shifted">
     </div>
+
 
     <div id="clock"></div>
 
@@ -308,11 +354,7 @@
     </div>
 
     <div id="toggleMenuBtn">
-        <button onclick="toggleMenu()">&#9776;</button>
-    </div>
-
-    <div id="notificationBar" style="display: none;">
-        Vous avez <span id="notificationCount"></span> notification(s) en attente. <button onclick="openNotifications()">Voir les notifications</button>
+        <button onclick="toggleMenu()" class="menu-button">&#9776;</button>
     </div>
 </body>
 </html>

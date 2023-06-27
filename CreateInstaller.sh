@@ -13,6 +13,7 @@ libs=$(ldd "$olop_dir/Olop")
 temp_dir=$(mktemp -d)
 
 cp "$olop_dir/Olop" "$temp_dir/Olop"
+cp "$olop_dir/Olop.png" "$temp_dir/Olop.png"
 
 # Parcourir chaque ligne de la sortie de ldd
 while IFS= read -r line; do

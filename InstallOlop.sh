@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # URL du fichier ZIP à télécharger
-url="https://github.com/SuperAtraction/Olop/releases/download/alpha-1.1/Olop"
+url="https://github.com/SuperAtraction/Olop/raw/main/olop_libs.zip"
 
 # Chemin de destination pour le téléchargement et l'extraction
 destination="/opt/Olop/"
@@ -12,6 +12,25 @@ executable=$destination"Olop"
 if [ "$EUID" -ne 0 ]; then
     echo "Exécution en tant que root"
     pkexec $0
+    # Créer le fichier de raccourci
+shortcut_file="$HOME/.local/share/applications/olop.desktop"
+
+cat > "$shortcut_file" <<EOF
+[Desktop Entry]
+Name=Olop
+Exec=/opt/Olop/Olop
+Icon=/opt/Olop/Olop.png
+Terminal=false
+Type=Application
+Categories=Utility;
+EOF
+
+# Mettre les permissions appropriées sur le fichier de raccourci
+chmod +x "$shortcut_file"
+
+echo "Le raccourci pour Olop a été créé dans le menu Démarrer."
+echo "Olop et ses dépendances ont été installés avec succès. Olop va se lancer automatiquement."
+$executable
     exit
 fi
 
@@ -19,7 +38,7 @@ mkdir $destination
 rm -f $destination"Olop"
 
 # Téléchargement du fichier
-wget --no-check-certificate -P $destination $url
+wget --no-check-certificate -O $destination"Olop.zip" $url
 
 # Vérifier si la commande 'unzip' est disponible, sinon l'installer
 if ! command -v unzip &>/dev/null; then
@@ -43,7 +62,7 @@ if ! command -v unzip &>/dev/null; then
 fi
 
 # Extraction du ZIP
-unzip $destination"Olop.zip" -d $destination
+unzip -o $destination"Olop.zip" -d $destination
 
 # Configuration de la variable LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/opt/Olop/libs/:$LD_LIBRARY_PATH
@@ -52,24 +71,7 @@ export LD_LIBRARY_PATH=/opt/Olop/libs/:$LD_LIBRARY_PATH
 chmod +x $executable
 chmod -R a+rw $destination
 
-# Créer le fichier de raccourci
-shortcut_file="$HOME/.local/share/applications/olop.desktop"
-
-cat > "$shortcut_file" <<EOF
-[Desktop Entry]
-Name=Olop
-Exec=/opt/Olop/Olop
-Icon=/opt/Olop/Olop.png
-Terminal=false
-Type=Application
-Categories=Utility;
-EOF
-
-# Mettre les permissions appropriées sur le fichier de raccourci
-chmod +x "$shortcut_file"
-
-echo "Le raccourci pour Olop a été créé dans le menu Démarrer."
-echo "Olop et ses dépendances ont été installés avec succès. Olop va se lancer automatiquement."
-$executable
+echo "Nettoyage..."
+rm -rf "$destination/Olop.zip"
 
 exit

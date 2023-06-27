@@ -14,6 +14,7 @@ temp_dir=$(mktemp -d)
 
 cp "$olop_dir/Olop" "$temp_dir/Olop"
 cp "$olop_dir/Olop.png" "$temp_dir/Olop.png"
+mkdir "$temp_dir/libs/"
 
 # Parcourir chaque ligne de la sortie de ldd
 while IFS= read -r line; do
@@ -26,12 +27,18 @@ while IFS= read -r line; do
         lib_name=$(basename "$lib")
 
         # Copier la bibliothèque vers le dossier temporaire
-        cp "$lib" "$temp_dir/$lib_name"
+        cp "$lib" "$temp_dir/libs/$lib_name"
     fi
 done <<< "$libs"
 
+# Se déplacer dans le répertoire temporaire
+cd "$temp_dir"
+
 # Créer une archive zip contenant toutes les bibliothèques
-zip -j "$olop_dir/olop_libs.zip" "$temp_dir"/*
+zip -r "$olop_dir/olop_libs.zip" *
+
+# Revenir dans le répertoire d'Olop
+cd "$olop_dir"
 
 # Supprimer le dossier temporaire
-rm -rf "$temp_dir"
+rm -rf "$temp_dir" 

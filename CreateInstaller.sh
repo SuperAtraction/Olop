@@ -35,7 +35,7 @@ done <<< "$libs"
 cd "$temp_dir"
 
 # Créer une archive zip contenant toutes les bibliothèques
-zip -r "$olop_dir/olop_libs.zip" *
+zip -r "/home/superatraction/Documents/Olop.zip" *
 
 # Revenir dans le répertoire d'Olop
 cd "$olop_dir"

@@ -64,6 +64,23 @@ return QHttpServerResponse::fromFile(QStringLiteral(":/assets/index.html"));
         return QHttpServerResponse::fromFile(QStringLiteral("Applications-list.txt"));
     });
 
+    httpServer.route("/Install/<arg>", [](const QUrl &Url){
+        QNetworkAccessManager* manager = new QNetworkAccessManager();
+        QNetworkRequest request(Url);
+        QNetworkReply* reply = manager->get(request);
+        QEventLoop loop;
+        QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+        loop.exec();
+        QByteArray data = reply->readAll();
+        delete reply;
+        delete manager;
+        if(data==""){
+            return QByteArray("Erreur, verifiez l'url et votre connexion internet");
+        }else {
+        return data;
+        }
+    });
+
     httpServer.route("/stop/", [](){
         QCoreApplication* app = QCoreApplication::instance();
         QTimer::singleShot(3000, app, []() {

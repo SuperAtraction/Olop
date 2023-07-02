@@ -16,14 +16,16 @@ SOURCES += \
     Tabs/newtab.cpp \
     Tabs/settings.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    olop.cpp
 
 HEADERS += \
     Download.h \
     Tabs/home.h \
     Tabs/newtab.h \
     Tabs/settings.h \
-    mainwindow.h
+    mainwindow.h \
+    olop.hpp
 
 FORMS += \
     Tabs/home.ui \

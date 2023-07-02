@@ -1,6 +1,6 @@
 <div id="port"></div>
 <script>
-    $("#port").html('Code <a onclick="WhatIsIt(1);" href="#">InstallPass</a> pour installer une application : '+location.port);
+    $("#port").html('Code <a onclick="WhatIsIt(1);" href="#">InstallPass</a> pour installer une application : '+location.port+' <input type="button" onclick="copyTextToClipboard(location.port)" value="Copier">');
 
     function WhatIsIt(number){
         var message = "Houlà ! Il semblerait qu'Olop ne puisse pas afficher cette information...";
@@ -9,4 +9,13 @@
         }
         showNotification(message);
     }
+
+    function copyTextToClipboard(text) {
+  var textArea = document.createElement("textarea");
+  textArea.value = text;
+  document.body.appendChild(textArea);
+  textArea.select();
+  document.execCommand("copy");
+  document.body.removeChild(textArea);
+}
 </script>

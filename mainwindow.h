@@ -1,29 +1,24 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QWidget>
-
+#include <QMainWindow>
+#include <QtCore>
+#include <QFile>
 
 namespace Ui {
 class MainWindow;
 }
 
-class MainWindow : public QWidget
+class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(QString url = "http://olop.rf.gd/Errors?id=1");
+    explicit MainWindow(QWidget *parent = nullptr, QString url="");
     ~MainWindow();
 
 private slots:
-    void on_ZoomM_clicked();
-
-    void on_ZoomL_clicked();
-
-    void on_NewTab_clicked();
-
-    void on_tabWidget_tabCloseRequested(int index);
+    void on_actionQuitter_triggered();
 
 private:
     Ui::MainWindow *ui;

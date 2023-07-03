@@ -61,6 +61,11 @@ int main(int argc, char *argv[])
         }
     });
 
+    httpServer.route("/Install/2/<arg>", [](const QUrl &Url){
+        qDebug() << Url;
+        return Url.toDisplayString();
+    });
+
     httpServer.route("/stop/", [](){
         exit(0);
         return "";

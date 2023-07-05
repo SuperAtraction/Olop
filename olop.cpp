@@ -49,7 +49,7 @@ QString MAIN::lireFichier(const QString& cheminFichier) {
 
     if (!fichier.open(QIODevice::ReadOnly | QIODevice::Text)) {
         // Gérer l'erreur si le fichier ne peut pas être ouvert
-        return QString();
+        return QString("E");
     }
 
     QTextStream flux(&fichier);
@@ -61,6 +61,7 @@ QString MAIN::lireFichier(const QString& cheminFichier) {
 }
 
 QStringList APP::decodeApp(const QString data) {
+
     QStringList lignesSeparate = data.split('\n', Qt::SkipEmptyParts);
     QStringList result;
 

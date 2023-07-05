@@ -24,6 +24,13 @@ int main(int argc, char *argv[])
 
     QHttpServer httpServer;
 
+    const auto port = httpServer.listen(QHostAddress::Any);
+    if (!port) {
+        qDebug() << QCoreApplication::translate("QHttpServerExample", "Server failed to listen on a port.");
+        exit(0);
+    }
+    MainWindow *w = new MainWindow(nullptr, "http://localhost:" + QString::number(port) + "/index.html");
+
     httpServer.route("/index.html", []() {
 #ifdef Q_OS_LINUX
         return MAIN::lireFichier(QStringLiteral(":/assets/index.html"))+"<script>"+MAIN::lireFichier(QStringLiteral(":/assets/linux.js"))+"</script>";
@@ -57,13 +64,16 @@ int main(int argc, char *argv[])
 
             QString encodedRedirectUrl = QUrl(redirectUrl.toUtf8()).toEncoded();
 
-            return QString("<script type=\"text/javascript\">location.href=\"" + encodedRedirectUrl +"&port=\" + location.port;</script>");
+            return QString("<script type=\"text/javascript\">location.href=\"" + encodedRedirectUrl +"&port=\" + location.port;</script><noscript>Activez javascript</noscript>");
         }
     });
 
-    httpServer.route("/Install/2/<arg>", [](const QUrl &Url){
+    httpServer.route("/Install/2/<arg>", [&w](const QUrl &Url){
         qDebug() << Url;
-        return Url.toDisplayString();
+        QStringList app = APP::decodeApp(MAIN::lireFichier(MAIN::O_DIR+Url.toDisplayString()+".app"));
+        w->setFocus();
+        QMessageBox::information(w, "Applications prête à installer", "L'application "+app[1]+" est prête à être installé.\nElle sera installée lorsque vous la démarrerez.");
+        return "<script>location.href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\";</script><noscript><a href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\">Cliquez ici</a> et activez javascript</noscript>";
     });
 
     httpServer.route("/stop/", [](){
@@ -100,12 +110,6 @@ int main(int argc, char *argv[])
         return QHttpServerResponse::fromFile(QStringLiteral(":/assets/%1").arg(url.path()));
     });
 
-    const auto port = httpServer.listen(QHostAddress::Any);
-    if (!port) {
-        qDebug() << QCoreApplication::translate("QHttpServerExample", "Server failed to listen on a port.");
-        exit(0);
-    }
-
     const auto sslCertificateChain = QSslCertificate::fromPath(QStringLiteral(":/assets/certificate.crt"));
     if (sslCertificateChain.isEmpty()) {
         qDebug() << QCoreApplication::translate("QHttpServerExample", "Couldn't retrieve SSL certificate from file.");
@@ -125,7 +129,6 @@ int main(int argc, char *argv[])
     }
     qDebug() << port;
 
-    MainWindow *w = new MainWindow(nullptr, "http://localhost:" + QString::number(port) + "/index.html");
     w->show();
 
     return app.exec();

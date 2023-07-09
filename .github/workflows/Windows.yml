@@ -1,0 +1,38 @@
+name: Build Windows Application
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up MSVC 2019
+        uses: microsoft/setup-msbuild@v1.0.1
+
+      - name: Set up Qt environment
+        uses: qt/actions/setup-qt@v2
+        with:
+          qt-version: '6.5.1'
+          host: 'windows'
+
+      - name: Install dependencies
+        run: qmake -config release
+
+      - name: Build application
+        run: qmake && nmake
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: Olop-Windows-Build
+          path: Olop.exe

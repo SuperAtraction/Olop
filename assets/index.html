@@ -258,6 +258,15 @@
             clock.innerHTML = addLeadingZero(hours) + ":" + addLeadingZero(minutes) + ":" + addLeadingZero(seconds);
             setTimeout(updateTime, 1000);
         }
+        
+        function updateTimeNS() {
+            var clock = document.getElementById("clock");
+            var date = new Date();
+            var hours = date.getHours();
+            var minutes = date.getMinutes();
+            clock.innerHTML = addLeadingZero(hours) + ":" + addLeadingZero(minutes);
+            setTimeout(updateTimeNS, 1000);
+        }
 
         // Ajouter un zéro devant les chiffres < 10
         function addLeadingZero(number) {
@@ -310,20 +319,19 @@
         }
 
         function update(){
-                        $("#button-update").html("Recherche de mises à jours...")
-                                        $("#info1").show("slide");
-                        $.ajax({
-                                url:"https://olopsytems.000webhostapp.com/Checkupdate.php?ver=alpha-1.1" , data: {id : $(this).attr("id")} ,dataType: "text" , success: function(recup){
-                                        console.log(recup);
-                                        if(recup.indexOf("0")!==-1){
-                                                $("#button-update").html("Aucune mise à jour disponible.<button onclick=\"mask(1);\">x</button>")
-                                        }else
-                                        {
-                                                $("#button-update").html("Mise à jour disponible. Merci de la télécharger."/*<button onClick=\"install();\">Oui</button><button onclick=\"mask(1);\">Non</button>"*/);
-                                        }
-                                }, error: function (xhr, ajaxOptions, thrownError) {
-                                        $("#button-update").html("Une erreur est survenue lors de la vérification de mises à jours, veuillez vérifier votre connexion internet.<button onclick=\"update();\">Rééssayer</button><button onclick=\"mask(1);\">x</button>"); //Ce code affichera le message d'erreur, ici Message d'erreur.
-}
+            $("#button-update").html("Recherche de mises à jours...")
+            $("#info1").show("slide");
+            $.ajax({url:"https://olopsytems.000webhostapp.com/Checkupdate.php?ver=alpha-1.1" , data: {id : $(this).attr("id")} ,dataType: "text" , success: function(recup){
+                    console.log(recup);
+                    if(recup.indexOf("0")!==-1){
+                        $("#button-update").html("Aucune mise à jour disponible.<button onclick=\"mask(1);\">x</button>")
+                    }else
+                    {
+                    $("#button-update").html("Mise à jour disponible. Merci de la télécharger."/*<button onClick=\"install();\">Oui</button><button onclick=\"mask(1);\">Non</button>"*/);
+                     }
+            }, error: function (xhr, ajaxOptions, thrownError) {
+                $("#button-update").html("Une erreur est survenue lors de la vérification de mises à jours, veuillez vérifier votre connexion internet.<button onclick=\"update();\">Rééssayer</button><button onclick=\"mask(1);\">x</button>"); //Ce code affichera le message d'erreur, ici Message d'erreur.
+            }
             });
                 }
     </script>

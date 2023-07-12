@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <title>Olop App</title>
@@ -53,12 +53,11 @@
         }
 
         #content {
-            margin-left: 250px;
-            padding: 20px;
-            padding-left: 50px;
-            display: none;
-            transition: margin-left 0.3s ease;
-        }
+    padding: 20px;
+    padding-left: 50px;
+    transition: margin-left 0.3s ease, transform 0.3s ease;
+    margin-left: 0; /* Ajoutez cette ligne pour définir la marge à 0 */
+}
 
         #clock {
             font-size: 20px;
@@ -170,7 +169,18 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
         }
 
-        .window-title-bar {
+        .window-title {
+            display: flex;
+            align-items: center;
+        }
+
+        .window-icon {
+            width: auto;
+            height: 1em;
+            margin-right: 0.5em;
+        }
+
+.window-title-bar {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -206,29 +216,29 @@
             transition: margin-left 0.3s ease;
         }
     </style>
+     <script src="jquery.js"></script>
     <script>
         // JavaScript
         var notificationCount = 0;
-        var windowCount = 0;
 
         // Chargement initial de la page "Home"
         function loadPage(page) {
-    var loader = $("#loader");
-    var content = $("#content");
-    loader.show();
-    content.hide();
+            var loader = $("#loader");
+            var content = $("#content");
+            loader.show();
+            content.hide();
 
-    // Utiliser jQuery pour charger le contenu de la page
-    content.load(page + ".html", function(response, status, xhr) {
-        loader.hide();
-        if (status === "error") {
-            var errorMessage = "Erreur: " + xhr.status + " " + xhr.statusText;
-            showNotification(errorMessage);
-        } else {
-            content.show();
+            // Utiliser jQuery pour charger le contenu de la page
+            content.load(page + ".html", function(response, status, xhr) {
+                loader.hide();
+                if (status === "error") {
+                    var errorMessage = "Erreur: " + xhr.status + " " + xhr.statusText;
+                    showNotification(-1, "Erreur "+xhr.status, errorMessage);
+                } else {
+                    content.show();
+                }
+            });
         }
-    });
-}
 
         // Afficher ou masquer le menu
         function toggleMenu() {
@@ -239,12 +249,12 @@
 
     sidebar.classList.toggle("hidden");
     toggleButton.classList.toggle("closed");
-    clock.classList.toggle("open-left"); // Ajoutez cette ligne pour ajouter ou supprimer la classe
+    clock.classList.toggle("open-left");
 
     if (sidebar.classList.contains("hidden")) {
-        content.classList.add("content-shifted");
+        content.style.marginLeft = "0";
     } else {
-        content.classList.remove("content-shifted");
+        content.style.marginLeft = "250px";
     }
 }
 
@@ -258,15 +268,6 @@
             clock.innerHTML = addLeadingZero(hours) + ":" + addLeadingZero(minutes) + ":" + addLeadingZero(seconds);
             setTimeout(updateTime, 1000);
         }
-        
-        function updateTimeNS() {
-            var clock = document.getElementById("clock");
-            var date = new Date();
-            var hours = date.getHours();
-            var minutes = date.getMinutes();
-            clock.innerHTML = addLeadingZero(hours) + ":" + addLeadingZero(minutes);
-            setTimeout(updateTimeNS, 1000);
-        }
 
         // Ajouter un zéro devant les chiffres < 10
         function addLeadingZero(number) {
@@ -274,12 +275,18 @@
         }
 
         // Afficher une notification
-        function showNotification(message) {
-    var notificationContainer = $('<div></div>').addClass('notification-container');
-    notificationContainer.html('<img src="Olop.png" alt="Notification" /><p>' + message + '</p><button onclick="closeNotification(this)">Fermer</button>');
-    $('body').append(notificationContainer);
+        function showNotification(type, title, message) {
+            var icon = "Olop.png";
+            if(type===-1){
+                icon = "Warning.png";
+            }else if(type===0){
+                icon = "Info.png";
+            }else if(type===1){
+                icon = "Ok.png";
+            } 
+            openWindow(icon, title, message, 1);
 
-    var notificationBar = $('#notificationBar');
+            var notificationBar = $('#notificationBar');
     var notificationCountElement = $('#notificationCount');
 
     notificationBar.hide();
@@ -287,35 +294,49 @@
     notificationBar.css('display', 'block');
     notificationCountElement.text(notificationCount);
     notificationBar.fadeIn('slow');
-}
-
-
-        // Fermer une notification
-        function closeNotification(button) {
-            button.parentNode.remove();
-            if (notificationCount === 1) {
-                $("#notificationBar").fadeOut("slow");
-                notificationCount=0;
-            }else{
-            notificationCount--;
-            }
-            // Masquer la barre de notifications si plus aucune notification
-            document.getElementById("notificationCount").innerText = notificationCount;
         }
 
         // Ouvrir une nouvelle fenêtre
-        function openWindow() {
-            var window = document.createElement("div");
-            window.className = "window";
-            window.innerHTML = '<div class="window-title-bar"><span>Fenêtre ' + (windowCount + 1) + '</span><button onclick="closeWindow(this)">Fermer</button></div><div class="window-content">Contenu de la fenêtre ' + (windowCount + 1) + '</div>';
-            document.body.appendChild(window);
-            windowCount++;
+        function openWindow(icon, title, content, isnotif) {
+            if (icon === "") {
+                icon = "Olop.png";
+            }
+
+            var windowElement = createWindowElement(icon, title, content, isnotif);
+            document.body.appendChild(windowElement);
         }
+
+        // Créer un élément de fenêtre avec le titre et le contenu spécifiés
+        function createWindowElement(icon, title, content, isnotif) {
+  var windowElement = $('<div class="window"></div>');
+  var windowTitleBar = $('<div class="window-title-bar"></div>');
+  var windowTitle = $('<span class="window-title"></span>');
+  var iconImage = $('<img class="window-icon" src="' + icon + '">');
+  var closeButton = $('<button>&#10060;</button>').click(function() {
+    if (isnotif === 1) {
+      if (notificationCount === 1) {
+        $("#notificationBar").fadeOut("slow");
+        notificationCount = 0;
+      } else {
+        notificationCount--;
+      }
+      document.getElementById("notificationCount").innerText = notificationCount;
+    }
+    closeWindow(this);
+  });
+  var windowContent = $('<div class="window-content">' + content + '</div>');
+
+  windowTitle.append(iconImage).append(title);
+  windowTitleBar.append(windowTitle).append('&nbsp;').append(closeButton);
+  windowElement.append(windowTitleBar).append(windowContent);
+
+  return windowElement.get(0);
+}
+
 
         // Fermer une fenêtre
         function closeWindow(button) {
             button.parentNode.parentNode.remove();
-            windowCount--;
         }
 
         function update(){
@@ -327,18 +348,24 @@
                         $("#button-update").html("Aucune mise à jour disponible.<button onclick=\"mask(1);\">x</button>")
                     }else
                     {
-                    $("#button-update").html("Mise à jour disponible. Merci de la télécharger."/*<button onClick=\"install();\">Oui</button><button onclick=\"mask(1);\">Non</button>"*/);
+                    $("#button-update").html("Mise à jour disponible. Merci de la télécharger."/*, souhaitez-vous l'installer ? <button onClick=\"install();\">Oui</button><button onclick=\"mask(1);\">Non</button>"*/);
                      }
             }, error: function (xhr, ajaxOptions, thrownError) {
                 $("#button-update").html("Une erreur est survenue lors de la vérification de mises à jours, veuillez vérifier votre connexion internet.<button onclick=\"update();\">Rééssayer</button><button onclick=\"mask(1);\">x</button>"); //Ce code affichera le message d'erreur, ici Message d'erreur.
             }
             });
                 }
+
+                $(document).ready(function() {
+            loadPage("home");
+            updateTime();
+            update();
+            toggleMenu();
+        });
     </script>
-    <script src="jquery.js"></script>
 </head>
-<body onload="loadPage('home'); updateTime();update();">
-    <div id="sidebar">
+<body>
+    <div id="sidebar" class="hidden">
         <h1>Olop</h1>
         <ul>
             <li onclick="loadPage('home')">Accueil</li>
@@ -354,7 +381,6 @@
     <div id="content" class="content-shifted">
     </div>
 
-
     <div id="clock"></div>
 
     <div id="loader">
@@ -362,7 +388,7 @@
     </div>
 
     <div id="toggleMenuBtn">
-        <button onclick="toggleMenu()" class="menu-button">&#9776;</button>
+        <button type="button" onclick="toggleMenu()" class="menu-button">&#9776;</button>
     </div>
 </body>
 </html>

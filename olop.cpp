@@ -1,4 +1,5 @@
 #include "olop.hpp"
+#include "ui_mainwindow.h"
 #include <QtHttpServer>
 #include <QDesktopServices>
 #include <QApplication>
@@ -103,8 +104,11 @@ int MAIN::SERVER(){
             QMessageBox::critical(w, "Erreur", "Erreur lors de l'installation de l'application "+app[1]);
             return "Erreur lors de l'installation de l'application "+app[1];
         }
+        w->ui->Web->page()->runJavaScript("showNotification(\"L\'application " + app[1] + " est prête à être installée.<br>Elle sera installée lorsque vous la démarrerez.\");");
+        w->activateWindow();
+        w->raise();
+        w->showNormal();
 
-        QMessageBox::information(w, "Applications prête à installer", "L'application "+app[1]+" est prête à être installé.\nElle sera installée lorsque vous la démarrerez.");
         return "<script>location.href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\";</script><noscript><a href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\">Cliquez ici</a> et activez javascript</noscript>";
     });
 

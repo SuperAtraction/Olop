@@ -16,12 +16,13 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr, QString url="");
     ~MainWindow();
+    Ui::MainWindow *ui;
 
 private slots:
     void on_actionQuitter_triggered();
 
 private:
-    Ui::MainWindow *ui;
+
 };
 
 #endif // MAINWINDOW_H

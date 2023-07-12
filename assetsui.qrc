@@ -11,5 +11,8 @@
         <file alias="fluent_dark.qss">assets/Themes/Fluent Dark.qss</file>
         <file>assets/loading.gif</file>
         <file>assets/Olop.png</file>
+        <file>assets/Ok.png</file>
+        <file>assets/Warning.png</file>
+        <file>assets/Info.png</file>
     </qresource>
 </RCC>

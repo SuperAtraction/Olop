@@ -117,8 +117,8 @@ int MAIN::SERVER(){
         return "";
     });
 
-    httpServer.route("/olop.ico", []() {
-        return QHttpServerResponse::fromFile(QStringLiteral(":/assets/olop.ico"));
+    httpServer.route("/getapp/<arg>", [](const QUrl &Url) {
+        return lireFichier(Url.toDisplayString());
     });
 
     /*httpServer.route("/actions/goupdate/", [](){

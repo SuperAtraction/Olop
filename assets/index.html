@@ -200,7 +200,6 @@
             padding: 5px 10px;
             border: none;
             border-radius: 5px;
-            background-color: #007bff;
             color: #ffffff;
             font-family: Arial, sans-serif;
             font-size: 14px;
@@ -212,7 +211,8 @@
         }
 
         .window-title-bar button:hover {
-            background-color: #0056b3;
+            background-color: #591f91;
+            color: #ffffff;
         }
 
         .window-content {
@@ -222,6 +222,26 @@
         .content-shifted {
             margin-left: 0;
             transition: margin-left 0.3s ease;
+        }
+
+        .button {
+            padding: 10px;
+            border: none;
+            border-radius: 20px;
+            background-color: #ffffff;
+            color: #007bff;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .button:hover {
+            background-color: #007bff;
+            color: #ffffff;
         }
     </style>
     <script src="jquery.js"></script>
@@ -318,7 +338,7 @@
             var windowTitleBar = $('<div class="window-title-bar"></div>');
             var windowTitle = $('<span class="window-title"></span>');
             var iconImage = $('<img class="window-icon" src="' + icon + '">');
-            var closeButton = $('<button>&#10060;</button>').click(function() {
+            var closeButton = $('<button type="button">&#10060;</button>').click(function() {
                 if (isnotif === 1) {
                     if (notificationCount === 1) {
                         $("#notificationBar").fadeOut("slow");
@@ -340,8 +360,10 @@
         }
 
         // Fermer une fenêtre
-        function closeWindow(button) {
-            button.parentNode.parentNode.remove();
+        function closeWindow(button, isdb) {
+            if(isdb===1){
+                button.parentNode.parentNode.parentNode.remove();
+            }else {button.parentNode.parentNode.remove();}
         }
 
         function decodeApp(data) {
@@ -390,20 +412,32 @@
         }
 
         function loadPAP(app) {
-            downloadFile("/getapp/" + app).then(result => {
-                var decodedResult = decodeApp(result);
-                var nom = decodedResult[1];
-                var version = decodedResult[2];
-                var url = decodedResult[3];
-                var developpeur = decodedResult[4];
-                var type = decodedResult[5];
-                var os = decodedResult[6];
-                var description = decodedResult[7];
-                var iconurl = url+"/favicon.png";
+    downloadFile("/getapp/" + app).then(result => {
+        var decodedResult = decodeApp(result);
+        var nom = decodedResult[1];
+        var version = decodedResult[2];
+        var url = decodedResult[3];
+        var developpeur = decodedResult[4];
+        var type = decodedResult[5];
+        var os = decodedResult[6];
+        var description = decodedResult[7];
+        var iconurl = url + "/favicon.png";
 
-                openWindow(iconurl, "Lancement de " + nom, description)
-            });
-        }
+        downloadFile("/checkurl/200/" + iconurl).then(result => {
+            if (result.indexOf("1") === -1) {
+                iconurl = "/Olop.png";
+            }
+        }).catch(error => {
+            iconurl = "/Olop.png";
+        }).then(() => {
+            openWindow(iconurl, nom, description+"<div style='text-align: right;'><i>" + nom + " version " + version + ", <br>développé par " + developpeur + ' </i><br><button type="button" class="button" onclick="closeWindow(this,1);">Annuler</button>&nbsp;<button type="button" class="button" onclick="Launch(this);">Lancer</button></div><br>');
+        });
+    });
+}
+
+function Launch(button) {
+    button.parentNode.parentNode.innerHTML="L'application ne peut pas se lancer :)";
+}
 
         function update() {
             $("#button-update").html("Recherche de mises à jour...")

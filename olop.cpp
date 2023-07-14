@@ -6,6 +6,10 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QHttpServer>
+#include <QCoreApplication>
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
 
 QString def = "Olop n'a pas été initialisé\nSi vous êtes le développeur de cette application, veuillez utiliser \"MAIN::INIT();\" au démarrage.";
 
@@ -119,6 +123,13 @@ int MAIN::SERVER(){
 
     httpServer.route("/getapp/<arg>", [](const QUrl &Url) {
         return lireFichier(Url.toDisplayString());
+    });
+
+    httpServer.route("/checkurl/200/<arg>", [](const QUrl &Url){
+        if(NETWORK::checkURLAccess(Url.toDisplayString())){
+            return "1";
+        }
+        return "0";
     });
 
     /*httpServer.route("/actions/goupdate/", [](){
@@ -296,4 +307,20 @@ QStringList APP::decodeApp(const QString data) {
 
 QStringList APP::decodeApp(const QByteArray data) {
     return APP::decodeApp(QString::fromUtf8(data));
+}
+
+bool NETWORK::checkURLAccess(const QString& url) {
+    QNetworkAccessManager manager;
+    QNetworkRequest request(url);
+
+    QNetworkReply* reply = manager.get(request);
+    QEventLoop loop;
+    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+
+    if (reply->error() == QNetworkReply::NoError) {
+        return true; // L'URL est accessible
+    }
+
+    return false; // L'URL n'est pas accessible ou une erreur s'est produite
 }

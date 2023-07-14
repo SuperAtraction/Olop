@@ -35,4 +35,9 @@ public:
     static QString LIST(const QString& directoryPath);
 };
 
+class NETWORK {
+public:
+    static bool checkURLAccess(const QString& url);
+};
+
 #endif // OLOP_HPP

@@ -56,7 +56,7 @@
             padding: 20px;
             padding-left: 50px;
             transition: margin-left 0.3s ease, transform 0.3s ease;
-            margin-left: 0; /* Ajoutez cette ligne pour définir la marge à 0 */
+            margin-left: 0;
         }
 
         #clock {
@@ -211,9 +211,14 @@
         }
 
         .window-title-bar button:hover {
-            background-color: #591f91;
-            color: #ffffff;
-        }
+    background-color: #591f91;
+    color: #ffffff;
+}
+
+.window-title-bar button.hovered::before {
+    color: #ffffff;
+}
+
 
         .window-content {
             word-wrap: break-word;
@@ -268,21 +273,17 @@
 
         // Afficher ou masquer le menu
         function toggleMenu() {
-            var sidebar = document.getElementById("sidebar");
-            var toggleButton = document.getElementById("toggleMenuBtn");
-            var content = document.getElementById("content");
-            var clock = document.getElementById("clock");
+    var sidebar = document.getElementById("sidebar");
+    var toggleButton = document.getElementById("toggleMenuBtn");
+    var content = document.getElementById("content");
+    var clock = document.getElementById("clock");
 
-            sidebar.classList.toggle("hidden");
-            toggleButton.classList.toggle("closed");
-            clock.classList.toggle("open-left");
+    sidebar.classList.toggle("hidden");
+    toggleButton.classList.toggle("closed");
+    clock.classList.toggle("open-left");
 
-            if (sidebar.classList.contains("hidden")) {
-                content.style.marginLeft = "0";
-            } else {
-                content.style.marginLeft = "250px";
-            }
-        }
+    content.style.marginLeft = sidebar.classList.contains("hidden") ? "0" : "250px";
+}
 
         // Mise à jour de l'horloge toutes les secondes
         function updateTime() {
@@ -361,9 +362,11 @@
 
         // Fermer une fenêtre
         function closeWindow(button, isdb) {
-            if(isdb===1){
+            if (isdb === 1) {
                 button.parentNode.parentNode.parentNode.remove();
-            }else {button.parentNode.parentNode.remove();}
+            } else {
+                button.parentNode.parentNode.remove();
+            }
         }
 
         function decodeApp(data) {
@@ -411,33 +414,47 @@
             }
         }
 
-        function loadPAP(app) {
-    downloadFile("/getapp/" + app).then(result => {
-        var decodedResult = decodeApp(result);
-        var nom = decodedResult[1];
-        var version = decodedResult[2];
-        var url = decodedResult[3];
-        var developpeur = decodedResult[4];
-        var type = decodedResult[5];
-        var os = decodedResult[6];
-        var description = decodedResult[7];
-        var iconurl = url + "/favicon.png";
+        async function loadPAP(app) {
+            try {
+                const result = await downloadFile(`/getapp/${app}`);
+                const decodedResult = decodeApp(result);
+                const nom = decodedResult[1];
+                const version = decodedResult[2];
+                const url = decodedResult[3];
+                const developpeur = decodedResult[4];
+                const type = decodedResult[5];
+                const os = decodedResult[6];
+                const description = decodedResult[7];
+                const iconurl = `${url}/favicon.png`;
 
-        downloadFile("/checkurl/200/" + iconurl).then(result => {
-            if (result.indexOf("1") === -1) {
-                iconurl = "/Olop.png";
+                const regex = /\/([a-zA-Z0-9]{1,6})\.app$/;
+                const match = app.match(regex);
+                const appf = match ? match[1] : "";
+
+                try {
+                    const iconResult = await downloadFile(`/checkurl/200/${iconurl}`);
+                    if (iconResult.indexOf("1") === -1) {
+                        openWindow("/Olop.png", nom, getAppDescription(nom, version, developpeur, description, app));
+                    } else {
+                        openWindow(iconurl, nom, getAppDescription(nom, version, developpeur, description, app));
+                    }
+                } catch (error) {
+                    openWindow("/Olop.png", nom, getAppDescription(nom, version, developpeur, description, app));
+                }
+            } catch (error) {
+                // Gérer l'erreur de downloadFile("/getapp/")
             }
-        }).catch(error => {
-            iconurl = "/Olop.png";
-        }).then(() => {
-            openWindow(iconurl, nom, description+"<div style='text-align: right;'><i>" + nom + " version " + version + ", <br>développé par " + developpeur + ' </i><br><button type="button" class="button" onclick="closeWindow(this,1);">Annuler</button>&nbsp;<button type="button" class="button" onclick="Launch(this);">Lancer</button></div><br>');
-        });
-    });
-}
+        }
 
-function Launch(button) {
-    button.parentNode.parentNode.innerHTML="L'application ne peut pas se lancer :)";
-}
+        function getAppDescription(nom, version, developpeur, description, app) {
+            return `${description}<div style='text-align: right;'><i>${nom} version ${version}, <br>développé par ${developpeur}</i><br><button type="button" class="button" onclick="closeWindow(this,1);">Annuler</button>&nbsp;<button type="button" class="button" onclick="Launch(this, '${app}');">Lancer</button></div><br>`;
+        }
+
+        function Launch(button, app) {
+            button.parentNode.parentNode.id = location.port;
+            alert(app);
+            $("#" + location.port).load("/loadapp/" + app);
+        }
 
         function update() {
             $("#button-update").html("Recherche de mises à jour...")
@@ -466,6 +483,7 @@ function Launch(button) {
             update();
             toggleMenu();
         });
+
     </script>
 </head>
 <body>
@@ -476,7 +494,9 @@ function Launch(button) {
             <li onclick="loadPage('Library')">Bibliothèque</li>
             <li onclick="loadPage('Paramètres')">Paramètres</li>
         </ul>
-        <div id="info1"><div id="button-update"></div></div><br>
+        <div id="info1">
+            <div id="button-update"></div>
+        </div><br>
         <div id="notificationBar" style="display: none;">
             Vous avez <span id="notificationCount"></span> notification(s).
         </div>

@@ -122,13 +122,14 @@ int MAIN::SERVER(){
     });
 
     httpServer.route("/getapp/<arg>", [](const QUrl &Url) {
+        qDebug() << Url.toDisplayString();
         return lireFichier(Url.toDisplayString());
     });
 
     httpServer.route("/checkurl/200/<arg>", [](const QUrl &Url){
-        if(NETWORK::checkURLAccess(Url.toDisplayString())){
+        /*if(NETWORK::checkURLAccess(Url.toDisplayString())){
             return "1";
-        }
+        }*/
         return "0";
     });
 
@@ -267,10 +268,13 @@ QString APP::LIST(const QString& directoryPath)
 
     // Formater la liste des fichiers
     QString formattedList;
-    for (const QString& filePath : fileList) {
+    QString builder;
+    for (const auto& filePath : fileList) {
         QFile f(filePath);
-        formattedList += "<a href='#' onclick='loadPAP(\"" + f.fileName() + "\")'>" + decodeApp(MAIN::lireFichier(filePath))[1] + "</a><br>";
+        builder += QStringLiteral("<a href='#' onclick=\"loadPAP('") % f.fileName() % "')\">" % decodeApp(MAIN::lireFichier(filePath))[1] % "</a><br>";
     }
+
+    formattedList = builder;
 
     return formattedList;
 }

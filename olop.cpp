@@ -101,19 +101,24 @@ int MAIN::SERVER(){
         }
     });
 
-    httpServer.route("/Install/2/<arg>", [w](const QUrl &Url){
+    httpServer.route("/Install/2/<arg>", [](const QUrl &Url){
         qDebug() << Url;
         QStringList app = APP::decodeApp(MAIN::lireFichier(MAIN::O_DIR+Url.toDisplayString()+".app"));
         if(!MAIN::moveFile(MAIN::O_DIR+Url.toDisplayString()+".app", MAIN::O_DIR+"App/"+Url.toDisplayString()+".app")){
-            QMessageBox::critical(w, "Erreur", "Erreur lors de l'installation de l'application "+app[1]);
+            QMessageBox::critical(MAIN::w, "Erreur", "Erreur lors de l'installation de l'application "+app[1]);
             return "Erreur lors de l'installation de l'application "+app[1];
         }
-        w->ui->Web->page()->runJavaScript("showNotification(\"L\'application " + app[1] + " est prête à être installée.<br>Elle sera installée lorsque vous la démarrerez.\");");
-        w->activateWindow();
-        w->raise();
-        w->showNormal();
+        MAIN::w->ui->Web->page()->runJavaScript("showNotification(0, \"Installation d'une application\", \"L\'application " + app[1] + " est prête à être installée.<br>Elle sera installée lorsque vous la démarrerez.\");");
+        MAIN::w->activateWindow();
+        MAIN::w->raise();
+        MAIN::w->showNormal();
 
         return "<script>location.href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\";</script><noscript><a href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\">Cliquez ici</a> et activez javascript</noscript>";
+    });
+
+    httpServer.route("/Install/3/<arg>", [](const QUrl &Url){
+
+        return "";
     });
 
     httpServer.route("/stop/", [](){

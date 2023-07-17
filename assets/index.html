@@ -324,18 +324,18 @@
         }
 
         // Ouvrir une nouvelle fenêtre
-        function openWindow(icon, title, content, isnotif) {
+        function openWindow(icon, title, content, isnotif, id) {
             if (icon === "") {
                 icon = "Olop.png";
             }
 
-            var windowElement = createWindowElement(icon, title, content, isnotif);
+            var windowElement = createWindowElement(icon, title, content, isnotif, id);
             document.body.appendChild(windowElement);
         }
 
         // Créer un élément de fenêtre avec le titre et le contenu spécifiés
-        function createWindowElement(icon, title, content, isnotif) {
-            var windowElement = $('<div class="window"></div>');
+        function createWindowElement(icon, title, content, isnotif, id) {
+            var windowElement = $('<div class="window" id="'+id+'"></div>');
             var windowTitleBar = $('<div class="window-title-bar"></div>');
             var windowTitle = $('<span class="window-title"></span>');
             var iconImage = $('<img class="window-icon" src="' + icon + '">');
@@ -477,12 +477,21 @@
             });
         }
 
-        $(document).ready(function() {
-            loadPage("home");
+        document.addEventListener('DOMContentLoaded', function() {
+setTimeout(() => {
+
+    loadPage("home");
             updateTime();
             update();
             toggleMenu();
-        });
+    
+      // Masquer le loader
+      var loader = document.getElementById('loader');
+      loader.style.display = 'none';
+}, 10);
+
+  // Autres opérations...
+});
 
     </script>
 </head>

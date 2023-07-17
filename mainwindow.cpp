@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent, QString url) :
         qWarning() << "Impossible d'ouvrir le fichier QSS.";
     }
     ui->Web->setUrl(QUrl(url));
+    connect(this, &MainWindow::resizeEvent, this, &MainWindow::resizeEvent);
 
     qDebug() << "Olop a été initialisé";
 }
@@ -24,6 +25,14 @@ MainWindow::MainWindow(QWidget *parent, QString url) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::resizeEvent(QResizeEvent* event)
+{
+    QMainWindow::resizeEvent(event);
+
+    // Redimensionner le widget QWebEngine avec la fenêtre principale
+    ui->Web->setGeometry(0, 0, ui->centralwidget->width(), ui->centralwidget->height());
 }
 
 void MainWindow::on_actionQuitter_triggered()

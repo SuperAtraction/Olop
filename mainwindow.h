@@ -20,6 +20,7 @@ public:
 
 private slots:
     void on_actionQuitter_triggered();
+    void resizeEvent(QResizeEvent* event);
 
 private:
 

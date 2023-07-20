@@ -10,6 +10,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 #include <QNetworkReply>
+#include <QWebEngineScript>
 
 QString def = "Olop n'a pas été initialisé\nSi vous êtes le développeur de cette application, veuillez utiliser \"MAIN::INIT();\" au démarrage.";
 
@@ -266,6 +267,47 @@ QStringList MAIN::getListOfFilesInDirectory(const QString& directoryPath)
 
     return fileList;
 }
+
+QString MAIN::detectLanguageJS(QWebEnginePage* page) {
+    // Code JavaScript pour détecter la langue du système
+    QString jsCode = R"(
+        function detectLanguage() {
+            var userLang = navigator.language || navigator.userLanguage;
+            return userLang;
+        }
+        detectLanguage();
+    )";
+
+    // Évaluer le script JavaScript de manière asynchrone sur l'objet QWebEnginePage (page).
+    page->runJavaScript(jsCode, [page](const QVariant &result){
+        if (result.isValid()) {
+            QString langue = result.toString();
+            // Faites quelque chose avec la langue détectée ici
+            // Obtenir la langue détectée en utilisant JavaScript
+
+            // Construire le chemin du script en fonction de la langue détectée
+            QString scriptPath = "lang_" + langue + ".js"; // Par exemple, si detectedLang est "fr", scriptPath sera "lang_fr.js".
+
+            // Charger le script correspondant
+            if (!scriptPath.isEmpty()) {
+                QString scriptContent = MAIN::lireFichier(scriptPath); // Utilisez votre fonction "lirefichier" pour obtenir le contenu du script.
+                if (!scriptContent.isEmpty()) {
+                    page->runJavaScript(scriptContent); // Exécutez le contenu du script.
+                } else {
+                    qWarning() << "Impossible de lire le fichier de script : " << scriptPath;
+                }
+            }
+        } else {
+            // Gérer l'erreur ici si nécessaire
+            qDebug() << "Erreur lors de la détection de la langue";
+        }
+    });
+
+    // Retourner une chaîne vide car le résultat ne sera pas immédiatement disponible
+    return QString();
+}
+
+
 
 QString APP::LIST(const QString& directoryPath)
 {

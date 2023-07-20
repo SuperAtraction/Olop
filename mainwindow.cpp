@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "olop.hpp"
 
 MainWindow::MainWindow(QWidget *parent, QString url) :
     QMainWindow(parent),

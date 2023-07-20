@@ -3,6 +3,7 @@
 
 #include "mainwindow.h"
 #include "qhttpserver.h"
+#include <QWebEnginePage>
 #include <QtCore>
 
 // Fichier des actions principales d'Olop
@@ -26,6 +27,7 @@ public:
     static bool mkdir(QString path);
     static QStringList getListOfFilesInDirectory(const QString& directoryPath);
     static QString lireFichier(const QString& cheminFichier);
+    static QString detectLanguageJS(QWebEnginePage* page);
 };
 
 class APP {

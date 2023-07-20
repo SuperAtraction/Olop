@@ -1,0 +1,9 @@
+Alpha 1.0 : Truc de base (fait)
+Alpha 2.0 : Nouvelle interface InstallPass (technologie d'installation par code) complète (et début de la personnalisation ?)
+Alpha 3.0 : Launcher personnalisable, fonctions Linux, onglets (à confirmer, sinon pour la 3.1)
+Alpha 4.0 : Créateur d'applis ?
+
+Pour la Beta 1.0 (pas avant mi-2024, et on est en mi-2023) (v0.1.0-beta) : Launcher avec intégration GPT 3.5 (ou 4 ?), navigateur web avec technologie anti-fake news, correcteur d'erreur Qt c++ avec GPT(?), interface personnalisable à 100 %, paramètres comme Steam big picture (wifi, audio, affichage, etc), un mode jeu (?), onglets.
+TOUTES ces versions DOIVENT être des PE (Production Environement).
+
+Une PE ne peut pas se comme ça : ont peu avoir une PR (Pre Release) avec toutes les fonctions de la PE finale, mais c'est juste qu'il y a des bugs.

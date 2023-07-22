@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -240,6 +239,7 @@
             font-weight: bold;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
             transition: background-color 0.3s ease;
+            transition: color 0.3s ease;
             cursor: pointer;
             outline: none;
         }
@@ -248,11 +248,22 @@
             background-color: #007bff;
             color: #ffffff;
         }
+
+        .window-title-bar button.minimize-button {
+            color: #000000;
+        }
+
+        .window-title-bar button.minimize-button:hover {
+            color:#f8f8f8
+        }
     </style>
     <script src="jquery.js"></script>
     <script>
         // JavaScript
         var notificationCount = 0;
+        var minimizedWindows = [];
+        var minimizedWindowListRef;
+        var isMinimizedWindowListOpen = false;
 
         function loadPage(page) {
             var loader = $("#loader");
@@ -325,16 +336,21 @@
 
         // Ouvrir une nouvelle fenêtre
         function openWindow(icon, title, content, isnotif, id) {
-            if (icon === "") {
-                icon = "Olop.png";
-            }
+    if (icon === "") {
+        icon = "Olop.png";
+    }
 
-            var windowElement = createWindowElement(icon, title, content, isnotif, id);
-            document.body.appendChild(windowElement);
-        }
+    var windowElement = createWindowElement(icon, title, content, isnotif, id);
+    document.body.appendChild(windowElement);
+
+    return windowElement; // Retourne l'élément de fenêtre créé
+}
 
         // Créer un élément de fenêtre avec le titre et le contenu spécifiés
         function createWindowElement(icon, title, content, isnotif, id) {
+            if (!id) {
+        id = "window-" + Math.random().toString(36).substr(2, 9); // Génère un identifiant aléatoire
+    }
             var windowElement = $('<div class="window" id="'+id+'"></div>');
             var windowTitleBar = $('<div class="window-title-bar"></div>');
             var windowTitle = $('<span class="window-title"></span>');
@@ -352,22 +368,109 @@
                 closeWindow(this);
             });
             var windowContent = $('<div class="window-content">' + content + '</div>');
+            var minimizeButton = $('<button type="button" class="minimize-button">&#9473;</button>').click(function () {
+                minimizeWindow(id);
+            });
 
             windowTitle.append(iconImage).append(title);
-            windowTitleBar.append(windowTitle).append('&nbsp;').append(closeButton);
+            windowTitleBar.append(windowTitle).append("&nbsp;").append(minimizeButton).append('&nbsp;').append(closeButton);
             windowElement.append(windowTitleBar).append(windowContent);
 
             return windowElement.get(0);
         }
 
-        // Fermer une fenêtre
         function closeWindow(button, isdb) {
-            if (isdb === 1) {
-                button.parentNode.parentNode.parentNode.remove();
-            } else {
-                button.parentNode.parentNode.remove();
-            }
+    if (isdb === 1) {
+        console.log('Close window and remove:', button.parentNode.parentNode.parentNode);
+        button.parentNode.parentNode.parentNode.remove();
+    } else {
+        console.log('Close window:', button.parentNode.parentNode);
+        button.parentNode.parentNode.remove();
+
+        // Mettez à jour la variable pour indiquer que la fenêtre est fermée
+        if (button.parentNode.parentNode.id === minimizedWindowListRef.id) {
+            isMinimizedWindowListOpen = false;
         }
+    }
+}
+
+        // Function to toggle window visibility between minimized and restored
+function minimizeWindow(windowId) {
+    var windowElement = $('#' + windowId);
+
+    if (minimizedWindows.includes(windowId)) {
+        // If the window is minimized, restore it
+        var index = minimizedWindows.indexOf(windowId);
+        minimizedWindows.splice(index, 1);
+        windowElement.show();
+    } else {
+        // If the window is not minimized, minimize it
+        minimizedWindows.push(windowId);
+        windowElement.hide();
+    }
+
+    var minimizedCount = minimizedWindows.length;
+    var minimizedText = minimizedCount > 0 ? `Il y a ${minimizedCount} fenêtre(s) minimisée(s)` : '';
+    document.getElementById('minimizedInfo').innerText = minimizedText;
+    document.getElementById('viewMinimized').style.display = minimizedCount > 0 ? 'inline-block' : 'none';
+}
+
+// Fonction pour afficher les fenêtres minimisées
+async function viewMinimizedWindows() {
+    // Vérifiez si la fenêtre est déjà ouverte
+    if (isMinimizedWindowListOpen) {
+        minimizedWindowListRef.focus();
+        return;
+    }
+
+    var windowList = $('<div>').addClass('window-list'); // Créez un nouvel élément div jQuery
+
+    for (var i = 0; i < minimizedWindows.length; i++) {
+        var windowId = minimizedWindows[i];
+        var windowElement = $('#' + windowId);
+
+        var windowItem = $('<div>').addClass('window-item'); // Créez un nouvel élément div jQuery
+
+        var windowTitle = windowElement.find('.window-title').text();
+
+        // Ajoutez le bouton de restauration pour chaque fenêtre minimisée
+        var restoreButton = $('<button>').addClass('window-restore-button')
+                                         .text('Restaurer')
+                                         .attr('data-window-id', windowId);
+
+        windowItem.text(windowTitle);
+        windowItem.append(restoreButton);
+        windowList.append(windowItem);
+    }
+
+    var windowListHTML = windowList.get(0).outerHTML; // Obtenez le outerHTML de l'élément jQuery
+    minimizedWindowListRef = await openWindow("", "Fenêtres minimisées", windowListHTML, 0);
+
+    // Ajoutez le gestionnaire d'événements de délégation pour les boutons de restauration
+    $(".window-list").on("click", ".window-restore-button", function() {
+        var id = $(this).attr('data-window-id');
+        var index = minimizedWindows.indexOf(windowId);
+        minimizedWindows.splice(index, 1);
+        $("#"+id).show();
+
+        minimizedWindowListRef.remove();
+        var minimizedCount = minimizedWindows.length;
+    var minimizedText = minimizedCount > 0 ? `Il y a ${minimizedCount} fenêtre(s) minimisée(s)` : '';
+    document.getElementById('minimizedInfo').innerText = minimizedText;
+    document.getElementById('viewMinimized').style.display = minimizedCount > 0 ? 'inline-block' : 'none';
+        isMinimizedWindowListOpen = false;
+    });
+
+    isMinimizedWindowListOpen = true;
+}
+
+async function closeMinimizedWindowList() {
+    if (isMinimizedWindowListOpen && minimizedWindowListRef) {
+        console.log('Close minimized window list:', minimizedWindowListRef.parentNode.parentNode);
+        await minimizedWindowListRef.parentNode.parentNode.remove();
+        isMinimizedWindowListOpen = false;
+    }
+}
 
         function decodeApp(data) {
             var lignesSeparate = data.split('\n').filter(Boolean);
@@ -509,6 +612,8 @@ setTimeout(() => {
         <div id="notificationBar" style="display: none;">
             Vous avez <span id="notificationCount"></span> notification(s).
         </div>
+        <div id="minimizedInfo"></div>
+        <button type="button" id="viewMinimized" style="display: none;" onclick="viewMinimizedWindows()">Voir</button>
     </div>
 
     <div id="content" class="content-shifted">

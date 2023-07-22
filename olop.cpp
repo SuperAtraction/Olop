@@ -128,7 +128,6 @@ int MAIN::SERVER(){
     });
 
     httpServer.route("/getapp/<arg>", [](const QUrl &Url) {
-        qDebug() << Url.toDisplayString();
         return lireFichier(Url.toDisplayString());
     });
 
@@ -306,8 +305,6 @@ QString MAIN::detectLanguageJS(QWebEnginePage* page) {
     // Retourner une chaîne vide car le résultat ne sera pas immédiatement disponible
     return QString();
 }
-
-
 
 QString APP::LIST(const QString& directoryPath)
 {

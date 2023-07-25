@@ -9,7 +9,12 @@
             margin: 0;
             padding: 0;
             background-color: #f8f8f8;
+            transition: transform 0.3s ease;
         }
+
+        * {
+    transition: transform 0.3s ease;
+}
 
         #sidebar {
             background-color: #ffffff;
@@ -196,6 +201,7 @@
         }
 
         .window-title-bar button {
+            background-color: transparent;
             padding: 5px 10px;
             border: none;
             border-radius: 5px;
@@ -206,18 +212,11 @@
             text-transform: uppercase;
             cursor: pointer;
             outline: none;
-            transition: background-color 0.3s ease;
         }
 
         .window-title-bar button:hover {
-    background-color: #591f91;
-    color: #ffffff;
+    transform: scale(1.3);
 }
-
-.window-title-bar button.hovered::before {
-    color: #ffffff;
-}
-
 
         .window-content {
             word-wrap: break-word;
@@ -253,9 +252,64 @@
             color: #000000;
         }
 
-        .window-title-bar button.minimize-button:hover {
-            color:#f8f8f8
-        }
+        /* Themes de nuit */
+        body.dark-theme {
+    background-color: #242424;
+    color: #ffffff;
+}
+
+#sidebar.dark-theme {
+    background-color: #222222;
+    color: #ffffff;
+}
+
+#content.dark-theme {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+.window.dark-theme {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+.window-title-bar.dark-theme {
+    background-color: #444444;
+    color: #ffffff;
+}
+
+#toggleMenuBtn .dark-theme {
+    background-color: #444444;
+    color: #ffffff;
+}
+
+.notification-container.dark-theme {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+.button.dark-theme {
+    background-color: #444444;
+    color: #ffffff;
+}
+
+#clock.dark-theme {
+    color: #ffffff;
+}
+
+.window-title-bar.dark-theme span {
+    color: #ffffff;
+}
+
+.window-title-bar.dark-theme .minimize-button {
+    color: #ffffff;
+}
+
+#toggleMenuBtn.dark-theme button {
+    color: #ffffff;
+    background-color: #333444;
+}
+
     </style>
     <script src="jquery.js"></script>
     <script>
@@ -348,92 +402,99 @@
 
         // Créer un élément de fenêtre avec le titre et le contenu spécifiés
         function createWindowElement(icon, title, content, isnotif, id) {
-            if (!id) {
+    if (!id) {
         id = "window-" + Math.random().toString(36).substr(2, 9); // Génère un identifiant aléatoire
     }
-            var windowElement = $('<div class="window" id="'+id+'"></div>');
-            var windowTitleBar = $('<div class="window-title-bar"></div>');
-            var windowTitle = $('<span class="window-title"></span>');
-            var iconImage = $('<img class="window-icon" src="' + icon + '">');
-            var closeButton = $('<button type="button">&#10060;</button>').click(function() {
-                if (isnotif === 1) {
-                    if (notificationCount === 1) {
-                        $("#notificationBar").fadeOut("slow");
-                        notificationCount = 0;
-                    } else {
-                        notificationCount--;
-                    }
-                    document.getElementById("notificationCount").innerText = notificationCount;
-                }
-                closeWindow(this);
-            });
-            var windowContent = $('<div class="window-content">' + content + '</div>');
-            var minimizeButton = $('<button type="button" class="minimize-button">&#9473;</button>').click(function () {
-                minimizeWindow(id);
-            });
-
-            windowTitle.append(iconImage).append(title);
-            windowTitleBar.append(windowTitle).append("&nbsp;").append(minimizeButton).append('&nbsp;').append(closeButton);
-            windowElement.append(windowTitleBar).append(windowContent);
-
-            return windowElement.get(0);
+    var windowElement = $('<div class="window" id="'+id+'"></div>');
+    var windowTitleBar = $('<div class="window-title-bar"></div>');
+    var windowTitle = $('<span class="window-title"></span>');
+    var iconImage = $('<img class="window-icon" src="' + icon + '">');
+    var closeButton = $('<button type="button">&#10060;</button>').click(function() {
+        if (isnotif === 1) {
+            if (notificationCount === 1) {
+                $("#notificationBar").fadeOut("slow");
+                notificationCount = 0;
+            } else {
+                notificationCount--;
+            }
+            document.getElementById("notificationCount").innerText = notificationCount;
         }
+        closeWindow(this);
+    });
+    
+    // Ajouter la classe dark-theme à la fenêtre si le thème sombre est actif
+    if (document.body.classList.contains('dark-theme')) {
+        windowElement.addClass('dark-theme');
+    }
+
+    var windowContent = $('<div class="window-content">' + content + '</div>');
+    var minimizeButton = $('<button type="button" class="minimize-button">&#9473;</button>').click(function () {
+        minimizeWindow(id);
+    });
+    if (document.body.classList.contains('dark-theme')) {
+        minimizeButton.addClass('dark-theme');
+    }
+    if (document.body.classList.contains('dark-theme')) {
+        windowTitleBar.addClass('dark-theme');
+    }
+
+    windowTitle.append(iconImage).append(title);
+    windowTitleBar.append(windowTitle).append("&nbsp;").append(minimizeButton).append('&nbsp;').append(closeButton);
+    windowElement.append(windowTitleBar).append(windowContent);
+
+    return windowElement.get(0);
+}
 
         function closeWindow(button, isdb) {
     if (isdb === 1) {
+        // Si la fenêtre est minimisée, fermer et supprimer la fenêtre de la liste des fenêtres minimisées
         console.log('Close window and remove:', button.parentNode.parentNode.parentNode);
         button.parentNode.parentNode.parentNode.remove();
+
+        var id = button.parentNode.parentNode.id;
+        var index = minimizedWindows.indexOf(id);
+        if (index !== -1) {
+            minimizedWindows.splice(index, 1);
+        }
+
     } else {
         console.log('Close window:', button.parentNode.parentNode);
         button.parentNode.parentNode.remove();
-
-        // Mettez à jour la variable pour indiquer que la fenêtre est fermée
-        if (button.parentNode.parentNode.id === minimizedWindowListRef.id) {
-            isMinimizedWindowListOpen = false;
-        }
     }
 }
 
         // Function to toggle window visibility between minimized and restored
-function minimizeWindow(windowId) {
-    var windowElement = $('#' + windowId);
+        function minimizeWindow(windowId) {
+  var windowElement = $('#' + windowId);
 
-    if (minimizedWindows.includes(windowId)) {
-        // If the window is minimized, restore it
-        var index = minimizedWindows.indexOf(windowId);
-        minimizedWindows.splice(index, 1);
-        windowElement.show();
-    } else {
-        // If the window is not minimized, minimize it
-        minimizedWindows.push(windowId);
-        windowElement.hide();
-    }
+  if (minimizedWindows.includes(windowId)) {
+    // Si la fenêtre est déjà minimisée, restaure-la
+    var index = minimizedWindows.indexOf(windowId);
+    minimizedWindows.splice(index, 1);
+    windowElement.show();
+  } else {
+    // Sinon, minimise-la
+    minimizedWindows.push(windowId);
+    windowElement.hide();
+  }
 
-    var minimizedCount = minimizedWindows.length;
-    var minimizedText = minimizedCount > 0 ? `Il y a ${minimizedCount} fenêtre(s) minimisée(s)` : '';
-    document.getElementById('minimizedInfo').innerText = minimizedText;
-    document.getElementById('viewMinimized').style.display = minimizedCount > 0 ? 'inline-block' : 'none';
+  // Mettre à jour le contenu du bouton "minimiser"
+  updateMinimizedButton();
 }
 
 // Fonction pour afficher les fenêtres minimisées
-async function viewMinimizedWindows() {
-    // Vérifiez si la fenêtre est déjà ouverte
-    if (isMinimizedWindowListOpen) {
-        minimizedWindowListRef.focus();
-        return;
-    }
-
-    var windowList = $('<div>').addClass('window-list'); // Créez un nouvel élément div jQuery
+function viewMinimizedWindows() {
+    // Créez un nouvel élément div jQuery pour afficher la liste des fenêtres minimisées
+    var windowList = $('<div>').addClass('window-list');
 
     for (var i = 0; i < minimizedWindows.length; i++) {
         var windowId = minimizedWindows[i];
         var windowElement = $('#' + windowId);
 
-        var windowItem = $('<div>').addClass('window-item'); // Créez un nouvel élément div jQuery
-
+        var windowItem = $('<div>').addClass('window-item');
         var windowTitle = windowElement.find('.window-title').text();
 
-        // Ajoutez le bouton de restauration pour chaque fenêtre minimisée
+        // Ajoutez un bouton de restauration pour chaque fenêtre minimisée
         var restoreButton = $('<button>').addClass('window-restore-button')
                                          .text('Restaurer')
                                          .attr('data-window-id', windowId);
@@ -443,25 +504,17 @@ async function viewMinimizedWindows() {
         windowList.append(windowItem);
     }
 
-    var windowListHTML = windowList.get(0).outerHTML; // Obtenez le outerHTML de l'élément jQuery
-    minimizedWindowListRef = await openWindow("", "Fenêtres minimisées", windowListHTML, 0);
-
-    // Ajoutez le gestionnaire d'événements de délégation pour les boutons de restauration
+    var windowListHTML = windowList.get(0).outerHTML;
+    openWindow("", "Fenêtres minimisées", windowListHTML, 0);
     $(".window-list").on("click", ".window-restore-button", function() {
-        var id = $(this).attr('data-window-id');
-        var index = minimizedWindows.indexOf(windowId);
-        minimizedWindows.splice(index, 1);
-        $("#"+id).show();
-
-        minimizedWindowListRef.remove();
-        var minimizedCount = minimizedWindows.length;
-    var minimizedText = minimizedCount > 0 ? `Il y a ${minimizedCount} fenêtre(s) minimisée(s)` : '';
-    document.getElementById('minimizedInfo').innerText = minimizedText;
-    document.getElementById('viewMinimized').style.display = minimizedCount > 0 ? 'inline-block' : 'none';
-        isMinimizedWindowListOpen = false;
-    });
-
-    isMinimizedWindowListOpen = true;
+    var id = $(this).attr('data-window-id');
+    var index = minimizedWindows.indexOf(id);
+    minimizedWindows.splice(index, 1);
+    $("#" + id).show();
+    // Supprimer la liste des fenêtres minimisées après avoir restauré la fenêtre
+    $('.window-list').parent().parent().remove();
+    updateMinimizedButton(); 
+});
 }
 
 async function closeMinimizedWindowList() {
@@ -501,6 +554,20 @@ async function closeMinimizedWindowList() {
             result.push("", nom, version, url, developpeur, type, os, description);
             return result;
         }
+
+        function updateMinimizedButton() {
+  var minimizedInfo = $("#minimizedInfo");
+  var viewMinimizedButton = $("#viewMinimized");
+
+  var numMinimized = minimizedWindows.length;
+  if (numMinimized > 0) {
+    minimizedInfo.html("Vous avez " + numMinimized + " fenêtre(s) minimisée(s).");
+    viewMinimizedButton.show();
+  } else {
+    minimizedInfo.html("");
+    viewMinimizedButton.hide();
+  }
+}
 
         async function downloadFile(fileUrl) {
             try {
@@ -580,6 +647,28 @@ async function closeMinimizedWindowList() {
             });
         }
 
+        function toggleTheme() {
+    var body = document.body;
+    var sidebar = document.getElementById('sidebar');
+    var content = document.getElementById('content');
+    var windows = Array.from(document.querySelectorAll('.window'));
+    var titleBars = Array.from(document.querySelectorAll('.window-title-bar'));
+    var buttons = Array.from(document.querySelectorAll('.button'));
+    var clock = document.getElementById('clock');
+    var toggleMenuBtn = document.getElementById('toggleMenuBtn');
+
+    // List of elements to toggle dark theme
+    var elementsToToggle = [body, sidebar, content, clock, toggleMenuBtn];
+
+    // Push windows and title bars into elements to toggle
+    elementsToToggle.push(...windows, ...titleBars, ...buttons);
+
+    // Toggle dark theme for each element
+    elementsToToggle.forEach(element => {
+        element.classList.toggle('dark-theme');
+    });
+}
+
         document.addEventListener('DOMContentLoaded', function() {
 setTimeout(() => {
 
@@ -595,7 +684,6 @@ setTimeout(() => {
 
   // Autres opérations...
 });
-
     </script>
 </head>
 <body>

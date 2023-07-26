@@ -72,7 +72,7 @@
             transition: left 0.3s ease, transform 0.3s ease;
         }
 
-        clock.open-left {
+        #clock.open-left {
             right: 20px;
             transition: right 0.3s ease;
         }
@@ -310,6 +310,10 @@
     background-color: #333444;
 }
 
+a.dark-theme {
+    color: yellow;
+}
+
     </style>
     <script src="jquery.js"></script>
     <script>
@@ -318,6 +322,7 @@
         var minimizedWindows = [];
         var minimizedWindowListRef;
         var isMinimizedWindowListOpen = false;
+        var windowContentIds = [];
 
         function loadPage(page) {
             var loader = $("#loader");
@@ -427,7 +432,17 @@
         windowElement.addClass('dark-theme');
     }
 
-    var windowContent = $('<div class="window-content">' + content + '</div>');
+    var windowContent;
+    var windowContentId = generateUniqueIdForWC();
+
+    // Vérifier si l'ID généré est unique, sinon en générer un nouveau
+    while (windowContentIds.includes(windowContentId)) {
+        windowContentId = generateUniqueIdForWC();
+    }
+    
+    windowContentIds.push(windowContentId); // Ajouter l'ID à la liste des IDs existants
+
+    windowContent = $('<div class="window-content" id="' + windowContentId + '">' + content + '</div>');
     var minimizeButton = $('<button type="button" class="minimize-button">&#9473;</button>').click(function () {
         minimizeWindow(id);
     });
@@ -443,6 +458,10 @@
     windowElement.append(windowTitleBar).append(windowContent);
 
     return windowElement.get(0);
+}
+
+function generateUniqueIdForWC() {
+    return "window_content_" + Math.random().toString(36).substr(2, 9);
 }
 
         function closeWindow(button, isdb) {
@@ -621,10 +640,8 @@ async function closeMinimizedWindowList() {
         }
 
         function Launch(button, app) {
-            button.parentNode.parentNode.id = location.port;
-            alert(app);
-            $("#" + location.port).load("/loadapp/" + app);
-        }
+    $(button).parent().parent().load("/Launch/1/" + app + "-OLOP-" + $(button).parent().parent().attr("id"));
+}
 
         function update() {
             $("#button-update").html("Recherche de mises à jour...")
@@ -647,31 +664,82 @@ async function closeMinimizedWindowList() {
             });
         }
 
-        function toggleTheme() {
-    var body = document.body;
-    var sidebar = document.getElementById('sidebar');
-    var content = document.getElementById('content');
-    var windows = Array.from(document.querySelectorAll('.window'));
-    var titleBars = Array.from(document.querySelectorAll('.window-title-bar'));
-    var buttons = Array.from(document.querySelectorAll('.button'));
-    var clock = document.getElementById('clock');
-    var toggleMenuBtn = document.getElementById('toggleMenuBtn');
+        function toggleTheme(force) {
+    var shouldToggle = true;
+    if (force === 'dark' && !document.body.classList.contains('dark-theme')) {
+        shouldToggle = true;
+    } else if (force === 'light' && document.body.classList.contains('dark-theme')) {
+        shouldToggle = true;
+    } else if (force === 'toggle') {
+        shouldToggle = true;
+    } else {
+        shouldToggle = false;
+    }
 
-    // List of elements to toggle dark theme
-    var elementsToToggle = [body, sidebar, content, clock, toggleMenuBtn];
+    if (shouldToggle) {
+        var body = document.body;
+        var sidebar = document.getElementById('sidebar');
+        var content = document.getElementById('content');
+        var windows = Array.from(document.querySelectorAll('.window'));
+        var titleBars = Array.from(document.querySelectorAll('.window-title-bar'));
+        var buttons = Array.from(document.querySelectorAll('.button'));
+        var clock = document.getElementById('clock');
+        var toggleMenuBtn = document.getElementById('toggleMenuBtn');
+        var links = Array.from(document.querySelectorAll("a"));
 
-    // Push windows and title bars into elements to toggle
-    elementsToToggle.push(...windows, ...titleBars, ...buttons);
+        // List of elements to toggle dark theme
+        var elementsToToggle = [body, sidebar, content, clock, toggleMenuBtn];
 
-    // Toggle dark theme for each element
-    elementsToToggle.forEach(element => {
-        element.classList.toggle('dark-theme');
-    });
+        // Push windows and title bars into elements to toggle
+        elementsToToggle.push(...windows, ...titleBars, ...buttons, ...links);
+
+        // Toggle dark theme for each element
+        elementsToToggle.forEach(element => {
+            element.classList.toggle('dark-theme');
+        });
+    }
 }
 
         document.addEventListener('DOMContentLoaded', function() {
-setTimeout(() => {
+            const observer = new MutationObserver((mutationsList) => {
+    // Parcourir toutes les mutations qui ont eu lieu
+    for (const mutation of mutationsList) {
+        // Si le nœud ajouté est un élément
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0 && document.body.classList.contains('dark-theme')) {
+            mutation.addedNodes.forEach((node) => {
+                if (node instanceof Element) { // vérifiez si le nœud est un élément
+                    // Vérifiez si le nœud ajouté est un lien et ajoutez la classe dark-theme s'il y en a un
+                    if (node.nodeName === 'A') {
+                        node.classList.add('dark-theme');
+                    }
+                    // Si le nœud ajouté a des descendants de type lien, ajoutez leur classe dark-theme
+                    const links = node.querySelectorAll('a');
+                    links.forEach((link) => {
+                        link.classList.add('dark-theme');
+                    });
+                }
+            });
+        }
+    }
+});
 
+function updateTheme() {
+    var currentHour = new Date().getHours();
+    if (currentHour >= 21 || currentHour < 8) {
+        // Activez le thème sombre s'il n'est pas déjà actif
+        toggleTheme('dark');
+    } else {
+        // Désactivez le thème sombre s'il est actif
+        toggleTheme('light');
+    }
+}
+
+// Commencer à observer le document avec les configurations spécifiées
+observer.observe(document.body, { childList: true, subtree: true });
+
+setTimeout(() => {
+    updateTheme();
+setInterval(updateTheme, 60000); // Vérifie le thème chaque minute
     loadPage("home");
             updateTime();
             update();
@@ -680,6 +748,7 @@ setTimeout(() => {
       // Masquer le loader
       var loader = document.getElementById('loader');
       loader.style.display = 'none';
+
 }, 10);
 
   // Autres opérations...
@@ -692,7 +761,7 @@ setTimeout(() => {
         <ul>
             <li onclick="loadPage('home')">Accueil</li>
             <li onclick="loadPage('Library')">Bibliothèque</li>
-            <li onclick="loadPage('Paramètres')">Paramètres</li>
+            <li onclick="loadPage('settings')">Paramètres</li>
         </ul>
         <div id="info1">
             <div id="button-update"></div>

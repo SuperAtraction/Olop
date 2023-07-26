@@ -117,26 +117,20 @@ int MAIN::SERVER(){
         return "<script>location.href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\";</script><noscript><a href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\">Cliquez ici</a> et activez javascript</noscript>";
     });
 
-    httpServer.route("/Launch/1/<arg>/<arg2>", [](const QUrl &Url) {
-        auto pathList = Url.path().split("/");
-        qDebug() << Url << pathList;
-        if(pathList.size() < 5) {  // pathList[0] = "", pathList[1] = "Launch", pathList[2] = "1", pathList[3] = "<arg1>", pathList[4] = "<arg2>"
-            // Pas assez d'arguments
-            return QString("Erreur: Pas assez d'arguments");
-        }
+    httpServer.route("/Launch/1/<arg>", [](const QUrl &Url) {
+        QWebEnginePage *page = w->ui->Web->page();
+        QTimer::singleShot(1, [=]() { // Exécuter ce code après un délai de 1 ms
+            auto args = Url.toDisplayString().split("-OLOP-");
+            auto appfile = args[0];
+            auto id = args[1];
+            // Utile ? auto app = QFileInfo(appfile).baseName();
+            auto decodedApp = APP::decodeApp(lireFichier(appfile));
+            if(QDir(appfile).exists() == false) {
+                page->runJavaScript("$(\"#"+id+"\").html(\"Installation en cours de "+decodedApp[1]+"\");");
+            }
+        });
 
-        QString arg1 = pathList[3];
-        QString arg2 = pathList[4];
-
-        // À ce stade, vous avez extrait arg1 et arg2 de l'URL
-        // Vous pouvez maintenant les utiliser comme vous le souhaitez
-
-        // Votre code ici...
-        if(QDir(MAIN::APP_DIR + "/" + arg1).exists() == false) {
-            // Suite...
-        }
-
-        return QString("OK");
+        return QString("Chargement...");
     });
 
     httpServer.route("/stop/", [](){

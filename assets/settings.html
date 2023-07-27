@@ -1,1 +1,56 @@
-<button type="button" onclick="toggleTheme('toggle')">Charger de theme</button>
+<h2>Thèmes :</h2>
+<button type="button" onclick="toggleThemeMode();"><span id="ModeThemeToggle">Chargement...</span></button>
+<div id="settings-theme-auto">
+    Vous êtes en mode automatique, vous pouvez paramètrer les horaires d'activation du thème sombre<br>
+    Activation du thème sombre de <input type="number" id="settings-theme-auto-1" min="0" max="24"> h à <input type="number" id="settings-theme-auto-2" min="0" max="24"> h.
+    <span class="droite"><button type="button" onclick="applyTTsettings()">Appliquer</button></span>
+</div>
+<div id="settings-theme-manual">
+    Vous êtes en mode manuel.<br><br>
+    <a href="#" onclick='toggleTheme("toggle")' class="flat-button"><span id="ToggleText">Changer de theme</span></a>
+</div><script>
+    function updateTTheme() {
+        var currentHour = new Date().getHours();
+        if (currentHour >= FirstTATheme || currentHour < secondTATheme) {
+        toggleTheme('dark');
+    } else {
+        toggleTheme('light');
+    }
+    }
+    function applyTTsettings() {
+        FirstTATheme  = $("#settings-theme-auto-1").val();
+        secondTATheme = $("#settings-theme-auto-2").val();
+        updateTTheme();
+    }
+
+    function setMTTContent() {
+    var MTTContent = "-";
+    if (themeMode === 0) {
+        MTTContent = "Passer en mode automatique";
+        $("#settings-theme-auto").fadeOut(function() {
+            $("#settings-theme-manual").fadeIn();
+        });
+    } else {
+        MTTContent = "Passer en mode manuel";
+        $("#settings-theme-manual").fadeOut(function() {
+            updateTTheme();
+            $("#settings-theme-auto").fadeIn();
+        });
+    }
+    $("#ModeThemeToggle").html(MTTContent);
+}
+    setTimeout(() => {
+        setMTTContent();
+        $("#settings-theme-auto-1").val(FirstTATheme);
+        $("#settings-theme-auto-2").val(secondTATheme);
+    }, 1);
+
+    function toggleThemeMode() {
+        if(themeMode===1){
+            themeMode=0;
+        }else {
+            themeMode=1;
+        }
+        setMTTContent();
+    }
+</script>

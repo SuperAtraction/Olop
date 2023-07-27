@@ -252,6 +252,48 @@
             color: #000000;
         }
 
+        .droite {
+            float: right;
+        }
+
+        .flat-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: transparent;
+    color: #007bff;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    outline: none;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    text-decoration: none;  /* Ajoutez cette ligne */
+}
+
+.flat-button:hover {
+    background-color: #007bff;
+    color: #ffffff;
+}
+
+.flat-button.dark-theme {
+    color: #ffffff;
+}
+
+.flat-button.dark-theme:hover {
+    background-color: #ffffff;
+    color: #007bff;
+}
+
+.settings-link {
+    position: absolute;
+    bottom: 35px; /* définir une marge de 20px par rapport au bas de la sidebar */
+    left: 0;
+    right: 0;
+    padding: 10px;
+    text-align: center;
+}
         /* Themes de nuit */
         body.dark-theme {
     background-color: #242424;
@@ -317,12 +359,15 @@ a.dark-theme {
     </style>
     <script src="jquery.js"></script>
     <script>
-        // JavaScript
+        // Variables
         var notificationCount = 0;
         var minimizedWindows = [];
         var minimizedWindowListRef;
         var isMinimizedWindowListOpen = false;
         var windowContentIds = [];
+        var themeMode = 1;
+        var FirstTATheme = 21;
+        var secondTATheme = 8;
 
         function loadPage(page) {
             var loader = $("#loader");
@@ -407,10 +452,10 @@ a.dark-theme {
 
         // Créer un élément de fenêtre avec le titre et le contenu spécifiés
         function createWindowElement(icon, title, content, isnotif, id) {
-    if (!id) {
-        id = "window-" + Math.random().toString(36).substr(2, 9); // Génère un identifiant aléatoire
+            if (!id) {
+        id = "window-" + Math.random().toString(36).substr(2, 9); // générer un ID seulement si aucun ID n'est passé
     }
-    var windowElement = $('<div class="window" id="'+id+'"></div>');
+    var windowElement = $('<div class="window" id="'+Math.random().toString(36).substr(2, 9)+'"></div>');
     var windowTitleBar = $('<div class="window-title-bar"></div>');
     var windowTitle = $('<span class="window-title"></span>');
     var iconImage = $('<img class="window-icon" src="' + icon + '">');
@@ -433,11 +478,11 @@ a.dark-theme {
     }
 
     var windowContent;
-    var windowContentId = generateUniqueIdForWC();
-
-    // Vérifier si l'ID généré est unique, sinon en générer un nouveau
+    if(!id){ var windowContentId = generateUniqueIdForWC();// Vérifier si l'ID généré est unique, sinon en générer un nouveau
     while (windowContentIds.includes(windowContentId)) {
         windowContentId = generateUniqueIdForWC();
+    }}else {
+        var windowContentId = id;
     }
     
     windowContentIds.push(windowContentId); // Ajouter l'ID à la liste des IDs existants
@@ -664,6 +709,12 @@ async function closeMinimizedWindowList() {
             });
         }
 
+        function openSettings() {
+    var id = "SETTINGS_" + Math.random().toString(36).substr(2, 9);
+    openWindow("", "Paramètres", "Un instant...", 0, id);
+    $("#" + id).load("settings.html");
+}
+
         function toggleTheme(force) {
     var shouldToggle = true;
     if (force === 'dark' && !document.body.classList.contains('dark-theme')) {
@@ -709,9 +760,9 @@ async function closeMinimizedWindowList() {
             mutation.addedNodes.forEach((node) => {
                 if (node instanceof Element) { // vérifiez si le nœud est un élément
                     // Vérifiez si le nœud ajouté est un lien et ajoutez la classe dark-theme s'il y en a un
-                    if (node.nodeName === 'A') {
+                    //if (node.nodeName === 'A') {
                         node.classList.add('dark-theme');
-                    }
+                   // }
                     // Si le nœud ajouté a des descendants de type lien, ajoutez leur classe dark-theme
                     const links = node.querySelectorAll('a');
                     links.forEach((link) => {
@@ -724,15 +775,14 @@ async function closeMinimizedWindowList() {
 });
 
 function updateTheme() {
+if(themeMode===1){
     var currentHour = new Date().getHours();
-    if (currentHour >= 21 || currentHour < 8) {
-        // Activez le thème sombre s'il n'est pas déjà actif
+    if (currentHour >= FirstTATheme || currentHour < secondTATheme) {
         toggleTheme('dark');
     } else {
-        // Désactivez le thème sombre s'il est actif
         toggleTheme('light');
     }
-}
+}}
 
 // Commencer à observer le document avec les configurations spécifiées
 observer.observe(document.body, { childList: true, subtree: true });
@@ -761,7 +811,6 @@ setInterval(updateTheme, 60000); // Vérifie le thème chaque minute
         <ul>
             <li onclick="loadPage('home')">Accueil</li>
             <li onclick="loadPage('Library')">Bibliothèque</li>
-            <li onclick="loadPage('settings')">Paramètres</li>
         </ul>
         <div id="info1">
             <div id="button-update"></div>
@@ -771,6 +820,7 @@ setInterval(updateTheme, 60000); // Vérifie le thème chaque minute
         </div>
         <div id="minimizedInfo"></div>
         <button type="button" id="viewMinimized" style="display: none;" onclick="viewMinimizedWindows()">Voir</button>
+        <a class="flat-button settings-link" href="#" onclick="openSettings();">&#9881; Paramètres</a>
     </div>
 
     <div id="content" class="content-shifted">

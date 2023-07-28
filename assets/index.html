@@ -185,34 +185,35 @@
         }
 
         .window-title-bar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .window-title-bar span {
-            font-size: 20px;
-            font-weight: bold;
-            word-wrap: break-word;
-        }
-
-        .window-title-bar button {
-            background-color: transparent;
-            padding: 5px 10px;
-            border: none;
-            border-radius: 5px;
-            color: #ffffff;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
-            outline: none;
-        }
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-wrap: nowrap; /* Ajoutez cette ligne */
+}
+.window-title-bar span {
+    font-size: 20px;
+    font-weight: bold;
+    word-wrap: break-word;
+    flex-grow: 1; /* Ajoutez cette ligne */
+}
+.window-title-bar button {
+    background-color: transparent;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    color: #ffffff;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    outline: none;
+    margin-left: 10px; /* Ajoutez cette ligne */
+}
 
         .window-title-bar button:hover {
     transform: scale(1.3);
@@ -358,6 +359,7 @@ a.dark-theme {
 
     </style>
     <script src="jquery.js"></script>
+    <script src="Olop.js"></script>
     <script>
         // Variables
         var notificationCount = 0;
@@ -455,7 +457,8 @@ a.dark-theme {
             if (!id) {
         id = "window-" + Math.random().toString(36).substr(2, 9); // générer un ID seulement si aucun ID n'est passé
     }
-    var windowElement = $('<div class="window" id="'+Math.random().toString(36).substr(2, 9)+'"></div>');
+    var idW = Math.random().toString(36).substr(2, 9);
+    var windowElement = $('<div class="window" id="'+idW+'"></div>');
     var windowTitleBar = $('<div class="window-title-bar"></div>');
     var windowTitle = $('<span class="window-title"></span>');
     var iconImage = $('<img class="window-icon" src="' + icon + '">');
@@ -489,7 +492,7 @@ a.dark-theme {
 
     windowContent = $('<div class="window-content" id="' + windowContentId + '">' + content + '</div>');
     var minimizeButton = $('<button type="button" class="minimize-button">&#9473;</button>').click(function () {
-        minimizeWindow(id);
+        minimizeWindow(idW);
     });
     if (document.body.classList.contains('dark-theme')) {
         minimizeButton.addClass('dark-theme');

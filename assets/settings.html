@@ -25,6 +25,8 @@
 
     function setMTTContent() {
     var MTTContent = "-";
+    var currentOffset = $(this).closest('.window').offset();
+
     if (themeMode === 0) {
         MTTContent = "Passer en mode automatique";
         $("#settings-theme-auto").fadeOut(function() {
@@ -38,6 +40,9 @@
         });
     }
     $("#ModeThemeToggle").html(MTTContent);
+
+    // Restaurez la position de la fenêtre
+    $(this).closest('.window').offset(currentOffset);
 }
     setTimeout(() => {
         setMTTContent();
@@ -54,3 +59,4 @@
         setMTTContent();
     }
 </script>
+<script src="Olop.js"></script>

@@ -14,5 +14,9 @@
         <file>assets/Ok.png</file>
         <file>assets/Warning.png</file>
         <file>assets/Info.png</file>
+        <file>assets/JqueryUi/jquery-ui.css</file>
+        <file>assets/JqueryUi/jquery-ui.min.css</file>
+        <file>assets/JqueryUi/jquery-ui.structure.min.css</file>
+        <file>assets/JqueryUi/jquery-ui.theme.min.css</file>
     </qresource>
 </RCC>

@@ -1,5 +1,5 @@
 <h2>Thèmes :</h2>
-<button type="button" onclick="toggleThemeMode();"><span id="ModeThemeToggle">Chargement...</span></button>
+<button type="button" onclick="toggleThemeMode(this);"><span id="ModeThemeToggle">Chargement...</span></button>
 <div id="settings-theme-auto">
     Vous êtes en mode automatique, vous pouvez paramètrer les horaires d'activation du thème sombre<br>
     Activation du thème sombre de <input type="number" id="settings-theme-auto-1" min="0" max="24"> h à <input type="number" id="settings-theme-auto-2" min="0" max="24"> h.
@@ -23,9 +23,9 @@
         updateTTheme();
     }
 
-    function setMTTContent() {
+    function setMTTContent(button) {
     var MTTContent = "-";
-    var currentOffset = $(this).closest('.window').offset();
+    var currentOffset = $(button).closest('.window').offset();
 
     if (themeMode === 0) {
         MTTContent = "Passer en mode automatique";

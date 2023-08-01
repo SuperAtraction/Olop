@@ -117,18 +117,34 @@ int MAIN::SERVER(){
         return "<script>location.href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\";</script><noscript><a href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\">Cliquez ici</a> et activez javascript</noscript>";
     });
 
-    httpServer.route("/Launch/1/<arg>", [](const QUrl &Url) {
+    httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
         QWebEnginePage *page = w->ui->Web->page();
-        QTimer::singleShot(1, [=]() { // Exécuter ce code après un délai de 1 ms
-            auto args = Url.toDisplayString().split("-OLOP-");
-            auto appfile = args[0];
-            auto id = args[1];
-            // Utile ? auto app = QFileInfo(appfile).baseName();
-            auto decodedApp = APP::decodeApp(lireFichier(appfile));
-            if(QDir(appfile).exists() == false) {
-                page->runJavaScript("$(\"#"+id+"\").html(\"Installation en cours de "+decodedApp[1]+"\");");
-            }
-        });
+
+        auto args = Url.toDisplayString().split("-OLOP-");
+        auto appfile = args[0];
+        auto id = args[1];
+        auto decodedApp = APP::decodeApp(lireFichier(appfile));
+
+        if(QDir(appfile).exists() == false) {
+            QTimer *timer = new QTimer; // Créer un nouveau QTimer sans parent
+            timer->setInterval(1000); // Régler l'intervalle à 1000 ms (1 seconde)
+
+            int counter = 0;
+
+            QObject::connect(timer, &QTimer::timeout, [=]() mutable {
+                counter = counter % 4;
+                QString points = QString(".").repeated(counter++); // Ajouter un point pour chaque seconde écoulée
+                QString jsCode = QString("$(\"#%1\").html(\"Installation en cours de %2%3\");")
+                                     .arg(id).arg(decodedApp[1]).arg(points);
+                page->runJavaScript(jsCode);
+            });
+            timer->start();
+
+            NETWORK::Download(decodedApp[3]+"/"+decodedApp[1]+"-package.zip");
+
+            /*timer->stop();
+            timer->deleteLater();*/
+        }
 
         return QString("Chargement...");
     });
@@ -382,4 +398,32 @@ bool NETWORK::checkURLAccess(const QString& url) {
     }
 
     return false; // L'URL n'est pas accessible ou une erreur s'est produite
+}
+
+QByteArray NETWORK::Download(const QUrl Url){
+    QNetworkAccessManager* manager = new QNetworkAccessManager();
+    QNetworkRequest request(Url);
+    QNetworkReply* reply = manager->get(request);
+    QEventLoop loop;
+    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    loop.exec();
+    QByteArray data = reply->readAll();
+    delete reply;
+    delete manager;
+    return data;
+}
+
+bool FILES::unZip(const QString &file, const QString &dest) {
+#ifdef Q_OS_WIN
+    QString program = "7z.exe";
+#elif defined(Q_OS_LINUX)
+    QString program = "/usr/bin/unzip";
+#else
+    --
+#endif
+
+    QProcess unzip;
+    unzip.start(program, QStringList() << file << "-d" << dest);
+    unzip.waitForFinished();
+    return (unzip.exitCode() == 0);
 }

@@ -1,8 +1,4 @@
-QT += core gui
-QT += httpserver
-QT += network
-QT += webenginewidgets
-QT += core
+QT += core gui webenginewidgets core httpserver network
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
@@ -20,7 +16,6 @@ SOURCES += \
     olop.cpp
 
 HEADERS += \
-    Download.h \
     Tabs/home.h \
     Tabs/newtab.h \
     Tabs/settings.h \

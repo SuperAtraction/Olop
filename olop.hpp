@@ -40,6 +40,12 @@ public:
 class NETWORK {
 public:
     static bool checkURLAccess(const QString& url);
+    static QByteArray Download(const QUrl Url);
+};
+
+class FILES {
+public:
+    static bool unZip(const QString &file, const QString &dest);
 };
 
 #endif // OLOP_HPP

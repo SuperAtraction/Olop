@@ -18,6 +18,7 @@ public:
     static MainWindow* w;
     static QString osname;
 
+    static bool ecrireDansFichier(const QString& cheminFichier, const QByteArray& contenu);
     static bool ecrireDansFichier(const QString& cheminFichier, const QString& contenu);
     static bool INIT();
     static int SERVER();
@@ -35,6 +36,8 @@ public:
     static QStringList decodeApp(const QString data);
     static QStringList decodeApp(const QByteArray data);
     static QString LIST(const QString& directoryPath);
+    static int HTTPSERVER(QString dir);
+    static QList<QHttpServer*> httpServers;
 };
 
 class NETWORK {

@@ -72,6 +72,12 @@
             transition: left 0.3s ease, transform 0.3s ease;
         }
 
+        iframe {
+            color: #ffffff;
+    overflow: auto;
+    resize: both;
+}
+
         #clock.open-left {
             right: 20px;
             transition: right 0.3s ease;
@@ -449,18 +455,7 @@ a.dark-theme {
             notificationBar.fadeIn('slow');
         }
 
-        // Ouvrir une nouvelle fenêtre
-        function openWindow(icon, title, content, isnotif, id) {
-    if (icon === "") {
-        icon = "Olop.png";
-    }
-
-    var windowElement = createWindowElement(icon, title, content, isnotif, id);
-    document.body.appendChild(windowElement);
-    return windowElement; // Retourne l'élément de fenêtre créé
-}
-
-function updateMinSize(windowElement) {
+        function updateMinSize(windowElement, useIframe){
     setTimeout(() => {
         initialHeight = windowElement.outerHeight();
 initialWidth = windowElement.outerWidth();
@@ -469,18 +464,54 @@ if (initialWidth == window.innerWidth) {
     initialWidth = initialWidth / 4;
 }
 
+var margin = 5;  // 5% de marge
+var windowWidth = $(window).width();
+var windowHeight = $(window).height();
+var containmentWidth = windowWidth - windowWidth * (margin / 100);
+var containmentHeight = windowHeight - windowHeight * (margin / 100);
+
 windowElement.resizable({
-    animate: true,
-    helper: "ui-resizable-helper",
+    containment: "parent",
     minWidth: initialWidth,
-    minHeight: initialHeight
+    minHeight: initialHeight,
+    resize: function(event, ui) {
+        // Calculez les dimensions maximales
+        var maxWidth = $(window).width() - ($(window).width() * margin / 100);
+        var maxHeight = $(window).height() - ($(window).height() * margin / 100);
+        
+        // Appliquez les limites de taille
+        if(ui.size.width > maxWidth) {
+            ui.size.width = maxWidth;
+            ui.position.left = event.originalEvent.pageX - (maxWidth / 2);
+        }
+        if(ui.size.height > maxHeight) {
+            ui.size.height = maxHeight;
+            ui.position.top = event.originalEvent.pageY - (maxHeight / 2);
+        }
+
+        setTimeout(() => {
+            if (useIframe) {
+                var iframe = $(ui.element).find('iframe').get(0);
+                resizeIframe(iframe);
+            }
+        }, 500);
+    }
 });
-        }, 100);
+}, 10)}
+        // Ouvrir une nouvelle fenêtre
+function openWindow(icon, title, content, isnotif, id, useIframe) {
+    if (icon === "") {
+        icon = "Olop.png";
+    }
+
+    var windowElement = createWindowElement(icon, title, content, isnotif, id, useIframe);
+    document.body.appendChild(windowElement);
+    return windowElement; // Retourne l'élément de fenêtre créé
 }
 
-        // Créer un élément de fenêtre avec le titre et le contenu spécifiés
-        function createWindowElement(icon, title, content, isnotif, id) {
-            if (!id) {
+// Créer un élément de fenêtre avec le titre et le contenu spécifiés
+function createWindowElement(icon, title, content, isnotif, id, useIframe) {
+    if (!id) {
         id = "window-" + Math.random().toString(36).substr(2, 9); // générer un ID seulement si aucun ID n'est passé
     }
     var idW = Math.random().toString(36).substr(2, 9);
@@ -507,16 +538,23 @@ windowElement.resizable({
     }
 
     var windowContent;
-    if(!id){ var windowContentId = generateUniqueIdForWC();// Vérifier si l'ID généré est unique, sinon en générer un nouveau
+    if(!id){ var windowContentId = generateUniqueIdForWC();
+    // Vérifier si l'ID généré est unique, sinon en générer un nouveau
     while (windowContentIds.includes(windowContentId)) {
         windowContentId = generateUniqueIdForWC();
     }}else {
         var windowContentId = id;
     }
-    
     windowContentIds.push(windowContentId); // Ajouter l'ID à la liste des IDs existants
+    var windowContent;
 
-    windowContent = $('<div class="window-content" id="' + windowContentId + '">' + content + '</div>');
+    if (useIframe) {
+        // Créez une iframe si useIframe est vrai
+        windowContent = $('<iframe class="window-content" id="' + id + '" src="' + content + '"></iframe>');
+    } else {
+        // Créez un div avec l'id spécifié si useIframe est faux
+        windowContent = $('<div class="window-content" id="' + id + '">' + content + '</div>');
+    }
     var minimizeButton = $('<button type="button" class="minimize-button">&#9473;</button>').click(function () {
         minimizeWindow(idW);
     });
@@ -530,16 +568,80 @@ windowElement.resizable({
     windowTitle.append(iconImage).append(title);
     windowTitleBar.append(windowTitle).append("&nbsp;").append(minimizeButton).append('&nbsp;').append(closeButton);
     windowElement.append(windowTitleBar).append(windowContent);
-    windowElement.draggable({
-    handle: ".window-title-bar"
-  });
   
-// Appellez cette fonction lors de la création de la fenêtre
 windowElement.ready(function() {
-    updateMinSize(windowElement);
+    $(windowElement).on('resize', function() {
+    $('.window').each(function() {
+        var $this = $(this);
+        $this.draggable('option', 'containment', [
+            0,
+            0,
+            $(window).width() - $this.outerWidth(true),
+            $(window).height() - $this.outerHeight(true)
+        ]);
+    });
+});
+
+    windowElement.draggable({
+        containment: "window",
+        drag: function(event, ui) {
+            var maxX = $(window).width();
+            var maxY = $(window).height();
+    
+            if(ui.position.left > maxX) {
+                ui.position.left = maxX;
+            }
+            if(ui.position.top > maxY) {
+                ui.position.top = maxY;
+            }
+            if(ui.position.left < 0) {
+                ui.position.left = 0;
+            }
+            if(ui.position.top < 0) {
+                ui.position.top = 0;
+            }
+        }
+});
+    updateMinSize(windowElement, useIframe);
 });
 
     return windowElement.get(0);
+}
+
+function findWindowAndConvertToIframe(contentId, iframeSrc) {
+    var contentElement = document.getElementById(contentId);
+    if (contentElement) {
+        // Trouver l'élément de la fenêtre parente en remontant dans la hiérarchie des parents
+        var windowElement = contentElement.closest('.window');
+        if (windowElement) {
+            // Convertir le contenu de la fenêtre en iframe
+            var windowId = windowElement.id;
+            convertWindowContentToIframe(windowId, iframeSrc);
+        } else {
+            console.error('Aucune fenêtre parente trouvée pour l\'élément avec l\'ID:', contentId);
+        }
+    } else {
+        console.error('Aucun élément trouvé avec l\'ID:', contentId);
+    }
+}
+
+function convertWindowContentToIframe(windowId, iframeSrc) {
+    var windowElement = $('#' + windowId);
+    if (windowElement.length > 0) {
+        var windowContentElement = windowElement.find('.window-content');
+        var windowContentId = windowContentElement.attr('id');
+        var iframeElement = $('<iframe></iframe>').attr('id', windowContentId).attr('src', iframeSrc);
+        windowContentElement.replaceWith(iframeElement);
+        resizeIframe(iframeElement.get(0));
+    } else {
+        console.error('Aucune fenêtre trouvée avec l\'ID:', windowId);
+    }
+}
+
+function resizeIframe(iframe){
+    var Window = iframe.parentNode;
+    $(iframe).height($(Window).height() - $(Window).find('.window-title-bar').outerHeight()); // soustrayez la hauteur de la barre de titre
+    $(iframe).width($(Window).width());
 }
 
 function generateUniqueIdForWC() {

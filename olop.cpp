@@ -21,6 +21,20 @@ const QString MAIN::APP_DIR = O_DIR + "/App/";
 QHttpServer MAIN::httpServer;
 MainWindow* MAIN::w;
 QString MAIN::osname = def;
+QList<QHttpServer*> APP::httpServers;
+
+bool MAIN::ecrireDansFichier(const QString& cheminFichier, const QByteArray& contenu) {
+    QFile fichier(cheminFichier);
+
+    if (fichier.open(QIODevice::WriteOnly)) {
+        fichier.write(contenu);
+        fichier.close();
+        return true;
+    } else {
+        qDebug() << "Impossible d'ouvrir le fichier en écriture :" << fichier.errorString();
+        return false;
+    }
+}
 
 bool MAIN::ecrireDansFichier(const QString& cheminFichier, const QString& contenu) {
     QFile fichier(cheminFichier);
@@ -35,6 +49,7 @@ bool MAIN::ecrireDansFichier(const QString& cheminFichier, const QString& conten
         return false;
     }
 }
+
 
 bool MAIN::INIT() {
     if (!MAIN::mkdir(O_DIR)) {
@@ -61,7 +76,7 @@ bool MAIN::INIT() {
 int MAIN::SERVER(){
     const auto port = httpServer.listen(QHostAddress::Any);
     if (!port) {
-        qDebug() << QCoreApplication::translate("QHttpServerExample", "Server failed to listen on a port.");
+        qDebug() << QCoreApplication::translate("Olop", "Server failed to listen on a port.");
         exit(0);
     }
 
@@ -93,7 +108,7 @@ int MAIN::SERVER(){
         } else {
             QStringList app = APP::decodeApp(data);
             int rand = QRandomGenerator::global()->bounded(0, 99999 + 1);
-            MAIN::ecrireDansFichier(MAIN::O_DIR+QString::number(rand)+".app", QString::fromUtf8(data));
+            MAIN::ecrireDansFichier(MAIN::O_DIR+QString::number(rand)+".app", data);
             QString redirectUrl = "https://olop.rf.gd/Store/InstallPass/?name=" + QUrl::toPercentEncoding(app[1]) + "&version=" + QUrl::toPercentEncoding(app[2]) +"&dev=" + QUrl::toPercentEncoding(app[4]) +"&description=" + QUrl::toPercentEncoding(app[7]) +"&code=" + QUrl::toPercentEncoding(QString::number(rand));
 
             QString encodedRedirectUrl = QUrl(redirectUrl.toUtf8()).toEncoded();
@@ -117,37 +132,52 @@ int MAIN::SERVER(){
         return "<script>location.href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\";</script><noscript><a href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\">Cliquez ici</a> et activez javascript</noscript>";
     });
 
-    httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
-        QWebEnginePage *page = w->ui->Web->page();
+httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
+    QWebEnginePage *page = w->ui->Web->page();
 
-        auto args = Url.toDisplayString().split("-OLOP-");
-        auto appfile = args[0];
-        auto id = args[1];
-        auto decodedApp = APP::decodeApp(lireFichier(appfile));
+    auto args = Url.toDisplayString().split("-OLOP-");
+    auto appfile = args[0];
+    auto id = args[1];
+    auto decodedApp = APP::decodeApp(lireFichier(appfile));
+    auto appdir = appfile.split(".app")[0]+"/";
+    auto packageurl = decodedApp[3]+"/"+decodedApp[1]+"-package.zip";
+    qDebug() << packageurl;
 
-        if(QDir(appfile).exists() == false) {
-            QTimer *timer = new QTimer; // Créer un nouveau QTimer sans parent
-            timer->setInterval(1000); // Régler l'intervalle à 1000 ms (1 seconde)
+    std::function<void()> launchCode = [=](){
+        int port = APP::HTTPSERVER(appdir);
+        qDebug() << port;
+        page->runJavaScript("findWindowAndConvertToIframe(\""+id+"\", \"http://localhost:"+QString::number(port)+"/index.html\");");
+    };
 
-            int counter = 0;
+    if(QDir(appdir).exists() == false) {
+        QTimer *timer = new QTimer; // Créer un nouveau QTimer sans parent
+        timer->setInterval(1000); // Régler l'intervalle à 1000 ms (1 seconde)
 
-            QObject::connect(timer, &QTimer::timeout, [=]() mutable {
-                counter = counter % 4;
-                QString points = QString(".").repeated(counter++); // Ajouter un point pour chaque seconde écoulée
-                QString jsCode = QString("$(\"#%1\").html(\"Installation en cours de %2%3\");")
-                                     .arg(id).arg(decodedApp[1]).arg(points);
-                page->runJavaScript(jsCode);
-            });
-            timer->start();
+        int counter = 0;
 
-            NETWORK::Download(decodedApp[3]+"/"+decodedApp[1]+"-package.zip");
+        QObject::connect(timer, &QTimer::timeout, [=]() mutable {
+            counter = counter % 4;
+            QString points = QString(".").repeated(counter++); // Ajouter un point pour chaque seconde écoulée
+            QString jsCode = QString("$(\"#%1\").html(\"Installation en cours de %2%3\");")
+                                 .arg(id).arg(decodedApp[1]).arg(points);
+            page->runJavaScript(jsCode);
+        });
+        timer->start();
 
-            /*timer->stop();
-            timer->deleteLater();*/
-        }
+        std::thread t([=]() {
+            qDebug() << MAIN::ecrireDansFichier(QDir::tempPath()+"/tmp.zip", NETWORK::Download(QUrl(packageurl)));
+            qDebug() << FILES::unZip(QDir::tempPath()+"/tmp.zip", appdir);
+            timer->stop();
+            timer->deleteLater();
+            QMetaObject::invokeMethod(page, launchCode);
+        });
+        t.detach();
+    } else {
+        QMetaObject::invokeMethod(page, launchCode);
+    }
 
-        return QString("Chargement...");
-    });
+    return QString("Chargement...");
+});
 
     httpServer.route("/stop/", [](){
         exit(0);
@@ -192,12 +222,12 @@ int MAIN::SERVER(){
 
     const auto sslCertificateChain = QSslCertificate::fromPath(QStringLiteral(":/assets/certificate.crt"));
     if (sslCertificateChain.isEmpty()) {
-        qDebug() << QCoreApplication::translate("QHttpServerExample", "Couldn't retrieve SSL certificate from file.");
+        qDebug() << QCoreApplication::translate("Olop", "Couldn't retrieve SSL certificate from file.");
         return 0;
     }
     QFile privateKeyFile(QStringLiteral(":/assets/private.key"));
     if (!privateKeyFile.open(QIODevice::ReadOnly)) {
-        qDebug() << QCoreApplication::translate("QHttpServerExample", "Couldn't open file for reading.");
+        qDebug() << QCoreApplication::translate("Olop", "Couldn't open file for reading.");
         return 0;
     }
     httpServer.sslSetup(sslCertificateChain.first(), QSslKey(&privateKeyFile, QSsl::Rsa));
@@ -384,6 +414,24 @@ QStringList APP::decodeApp(const QByteArray data) {
     return APP::decodeApp(QString::fromUtf8(data));
 }
 
+int APP::HTTPSERVER(QString dir){
+    QHttpServer* httpServer = new QHttpServer();
+    const auto port = httpServer->listen(QHostAddress::Any);
+    if (!port) {
+        qDebug() << QCoreApplication::translate("Olop", "Server failed to listen on a port.");
+        exit(0);
+    }
+
+    httpServer->route("/<arg>", [=](QUrl Url) {
+        return MAIN::lireFichier(dir+"/"+Url.toDisplayString());
+    });
+
+    // Ajouter le nouveau serveur HTTP à la liste
+    httpServers.append(httpServer);
+
+    return port;
+}
+
 bool NETWORK::checkURLAccess(const QString& url) {
     QNetworkAccessManager manager;
     QNetworkRequest request(url);
@@ -400,17 +448,26 @@ bool NETWORK::checkURLAccess(const QString& url) {
     return false; // L'URL n'est pas accessible ou une erreur s'est produite
 }
 
-QByteArray NETWORK::Download(const QUrl Url){
-    QNetworkAccessManager* manager = new QNetworkAccessManager();
-    QNetworkRequest request(Url);
-    QNetworkReply* reply = manager->get(request);
+QByteArray NETWORK::Download(const QUrl Url) {
+    QNetworkAccessManager manager;
+    QNetworkReply* reply = manager.get(QNetworkRequest(Url));
+    QByteArray downloadedData;
+
     QEventLoop loop;
-    QObject::connect(reply, &QNetworkReply::finished, &loop, &QEventLoop::quit);
+    QObject::connect(reply, &QNetworkReply::finished, [&]() {
+        if (reply->error() == QNetworkReply::NoError) {
+            downloadedData = reply->readAll();
+            qDebug() << "Taille des données téléchargées: " << downloadedData.size();
+                            qWarning() << "Réponse du serveur : " << reply->readAll();
+        } else {
+            qWarning() << "Erreur lors du téléchargement : " << reply->errorString();
+            qWarning() << "Réponse du serveur : " << reply->readAll();
+        }
+        loop.quit();
+    });
     loop.exec();
-    QByteArray data = reply->readAll();
-    delete reply;
-    delete manager;
-    return data;
+
+    return downloadedData;
 }
 
 bool FILES::unZip(const QString &file, const QString &dest) {

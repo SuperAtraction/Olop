@@ -10,6 +10,7 @@
 
 class MAIN {
 public:
+    ~MAIN();
     static const QString HOME;
     static const QString VERSION;
     static const QString O_DIR;
@@ -25,6 +26,7 @@ public:
     static bool copyFile(const QString& sourceFilePath, const QString& destinationFilePath);
     static bool moveFile(const QString& sourceFilePath, const QString& destinationFilePath);
     static bool deleteFile(const QString& filePath);
+    static bool supprimerDossier(const QString& cheminDossier);
     static bool mkdir(QString path);
     static QStringList getListOfFilesInDirectory(const QString& directoryPath);
     static QString lireFichier(const QString& cheminFichier);
@@ -33,6 +35,7 @@ public:
 
 class APP {
 public:
+    ~APP();
     static QStringList decodeApp(const QString data);
     static QStringList decodeApp(const QByteArray data);
     static QString LIST(const QString& directoryPath);

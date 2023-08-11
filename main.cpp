@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     if(!MAIN::INIT()){
-        QMessageBox::critical(nullptr, "Erreur critique", "Erreur critique d'init !");
+        QMessageBox::critical(nullptr, "Olop - Erreur critique", "Erreur critique d'init !");
         exit(-1);
     }
     int port = MAIN::SERVER();

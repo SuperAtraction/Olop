@@ -1,3 +1,4 @@
+
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -234,6 +235,12 @@
             overflow: auto;
         }
 
+        .window-content iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
         .content-shifted {
             margin-left: 0;
             transition: margin-left 0.3s ease;
@@ -456,6 +463,9 @@ a.dark-theme {
         }
 
         function updateMinSize(windowElement, useIframe){
+            if (!useIframe) { // Si ce n'est pas une iframe, ne faites rien et retournez directement
+        return;
+    }
     setTimeout(() => {
         initialHeight = windowElement.outerHeight();
 initialWidth = windowElement.outerWidth();
@@ -490,11 +500,11 @@ windowElement.resizable({
         }
 
         setTimeout(() => {
-            if (useIframe) {
-                var iframe = $(ui.element).find('iframe').get(0);
-                resizeIframe(iframe);
-            }
-        }, 500);
+    if (useIframe) {
+        var iframe = $(ui.element).find('iframe').get(0);
+        resizeIframe(iframe);
+    }
+}, 100);
     }
 });
 }, 10)}
@@ -570,39 +580,26 @@ function createWindowElement(icon, title, content, isnotif, id, useIframe) {
     windowElement.append(windowTitleBar).append(windowContent);
   
 windowElement.ready(function() {
-    $(windowElement).on('resize', function() {
-    $('.window').each(function() {
-        var $this = $(this);
-        $this.draggable('option', 'containment', [
-            0,
-            0,
-            $(window).width() - $this.outerWidth(true),
-            $(window).height() - $this.outerHeight(true)
-        ]);
-    });
-});
 
     windowElement.draggable({
-        containment: "window",
-        drag: function(event, ui) {
-            var maxX = $(window).width();
-            var maxY = $(window).height();
-    
-            if(ui.position.left > maxX) {
-                ui.position.left = maxX;
-            }
-            if(ui.position.top > maxY) {
-                ui.position.top = maxY;
-            }
-            if(ui.position.left < 0) {
-                ui.position.left = 0;
-            }
-            if(ui.position.top < 0) {
-                ui.position.top = 0;
+    handle: ".window-title-bar",
+    containment: "parent"
+  });
+    updateMinSize(windowElement, useIframe);
+    const contentObserver = new MutationObserver((mutationsList, observer) => {
+        for (const mutation of mutationsList) {
+            if (mutation.type === 'childList' || mutation.type === 'characterData' || mutation.type === 'attributes') {
+                // Mettre à jour la taille minimale si le contenu change
+                setTimeout(() => {
+                    updateMinSize(windowElement, useIframe);
+                }, 500);
             }
         }
-});
-    updateMinSize(windowElement, useIframe);
+    });
+
+    // Configuration de l'observateur pour surveiller les mutations de type childList (ajouts/suppressions d'éléments)
+    const config = { attributes: true, childList: true, characterData: true, subtree: true };
+    contentObserver.observe(windowContent.get(0), config);
 });
 
     return windowElement.get(0);
@@ -630,18 +627,22 @@ function convertWindowContentToIframe(windowId, iframeSrc) {
     if (windowElement.length > 0) {
         var windowContentElement = windowElement.find('.window-content');
         var windowContentId = windowContentElement.attr('id');
+
         var iframeElement = $('<iframe></iframe>').attr('id', windowContentId).attr('src', iframeSrc);
         windowContentElement.replaceWith(iframeElement);
-        resizeIframe(iframeElement.get(0));
+        
+        setTimeout(() => {
+            updateMinSize($("#"+windowId), true);
+        }, 100); // Le délai donne à l'iframe le temps de se charger
     } else {
         console.error('Aucune fenêtre trouvée avec l\'ID:', windowId);
     }
 }
 
-function resizeIframe(iframe){
-    var Window = iframe.parentNode;
-    $(iframe).height($(Window).height() - $(Window).find('.window-title-bar').outerHeight()); // soustrayez la hauteur de la barre de titre
-    $(iframe).width($(Window).width());
+function resizeIframe(iframe) {
+    var windowContainer = iframe.parentNode;
+    $(iframe).height($(windowContainer).height() - $(windowContainer).find('.window-title-bar').outerHeight(true)); 
+    $(iframe).width($(windowContainer).width());
 }
 
 function generateUniqueIdForWC() {
@@ -651,7 +652,6 @@ function generateUniqueIdForWC() {
         function closeWindow(button, isdb) {
     if (isdb === 1) {
         // Si la fenêtre est minimisée, fermer et supprimer la fenêtre de la liste des fenêtres minimisées
-        console.log('Close window and remove:', button.parentNode.parentNode.parentNode);
         button.parentNode.parentNode.parentNode.remove();
 
         var id = button.parentNode.parentNode.id;
@@ -661,8 +661,20 @@ function generateUniqueIdForWC() {
         }
 
     } else {
-        console.log('Close window:', button.parentNode.parentNode);
         button.parentNode.parentNode.remove();
+        var id = button.parentNode.parentNode.id;
+        var index = minimizedWindows.indexOf(id);
+        if (index !== -1) {
+            minimizedWindows.splice(index, 1);
+        }
+
+    }
+    var windowContentElement = button.parentNode.parentNode.querySelector('.window-content');
+    if (windowContentElement) {
+        const observer = windowContentElement.observer;
+        if (observer) {
+            observer.disconnect();
+        }
     }
 }
 
@@ -820,11 +832,40 @@ async function closeMinimizedWindowList() {
         }
 
         function getAppDescription(nom, version, developpeur, description, app) {
-            return `${description}<div style='text-align: right;'><i>${nom} version ${version}, <br>développé par ${developpeur}</i><br><button type="button" class="button" onclick="closeWindow(this,1);">Annuler</button>&nbsp;<button type="button" class="button" onclick="Launch(this, '${app}');">Lancer</button></div><br>`;
+            return `${description}<div style='text-align: right;'><i>${nom} version ${version}, <br>développé par ${developpeur}</i><br><span style='text-align: left'><button type="button" class="button" onclick="deleteApp(this, '`+app+`');">Déinstaller</button></span><button type="button" class="button" onclick="closeWindow(this,1);">Annuler</button>&nbsp;<button type="button" class="button" onclick="Launch(this, '`+app+`');">Lancer</button></div><br>`;
         }
 
         function Launch(button, app) {
     $(button).parent().parent().load("/Launch/1/" + app + "-OLOP-" + $(button).parent().parent().attr("id"));
+}
+
+function deleteApp(button, app){
+    var contentID = button.closest('.window-content').id;
+    $.ajax({
+    url: "/remove/" + app + "-OLOP-" + contentID,
+    type: 'GET',
+    success: function(responseText) {
+        if (responseText !== "OK") {
+            $("#" + contentID).html(responseText);
+        }
+    },
+    error: function(xhr, textStatus, errorThrown) {
+        // Gérez les erreurs ici si nécessaire
+        console.error("Erreur lors de la requête :", textStatus);
+    }
+});
+
+}
+
+function tmpHTML(id, time, content){
+    var oldContent = $("#"+id).html();
+    $("#"+id).html(content);
+    setTimeout(() => {
+        $("#"+id).fadeOut("slow", function () {
+            $("#"+id).html(oldContent);
+            $("#"+id).fadeIn("slow");
+        });
+    }, time);
 }
 
         function update() {

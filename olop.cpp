@@ -124,7 +124,7 @@ int MAIN::SERVER(){
             QMessageBox::critical(MAIN::w, "Erreur", "Erreur lors de l'installation de l'application "+app[1]);
             return "Erreur lors de l'installation de l'application "+app[1];
         }
-        MAIN::w->ui->Web->page()->runJavaScript("showNotification(0, \"Installation d'une application\", \"L\'application " + app[1] + " est prête à être installée.<br>Elle sera installée lorsque vous la démarrerez.\");");
+        MAIN::w->ui->Web->page()->runJavaScript("showNotification(0, \"Installation d'une application\", \"L\'application " + QUrl::toPercentEncoding(app[1]) + " est prête à être installée.<br>Elle sera installée lorsque vous la démarrerez.\");");
         MAIN::w->activateWindow();
         MAIN::w->raise();
         MAIN::w->showNormal();
@@ -177,6 +177,26 @@ httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
     }
 
     return QString("Chargement...");
+});
+
+    httpServer.route("/remove/<arg>", [=](const QUrl Url){
+    QWebEnginePage *page = w->ui->Web->page();
+    auto args = Url.toDisplayString().split("-OLOP-");
+    auto app = args[0];
+    auto id = args[1];
+    auto decodedApp(APP::decodeApp(lireFichier(app)));
+    qDebug() << app;
+    auto réponse = QMessageBox::question(w, "Confirmation", "Êtes-vous sûr de vouloir désinstaller "+decodedApp[1]+" ?", QMessageBox::Yes | QMessageBox::No);
+    if(réponse == QMessageBox::Yes){
+        page->runJavaScript("$(\"#"+id+"\").html(\"Suppression...\");");
+        deleteFile(app);
+        supprimerDossier(app.split(".app")[0]+"/");
+        page->runJavaScript("loadPage(\"home\");");
+        return "Suppression terminée.";
+    }else {
+        page->runJavaScript("tmpHTML(\""+id+"\", 4000, \"La suppression de l'application "+decodedApp[1]+" a été annulée.\");");
+        return "OK";
+    }
 });
 
     httpServer.route("/stop/", [](){
@@ -265,6 +285,40 @@ QString MAIN::lireFichier(const QString& cheminFichier) {
     fichier.close();
 
     return contenu;
+}
+
+bool MAIN::supprimerDossier(const QString& cheminDossier) {
+    QDir dossier(cheminDossier);
+
+    if (!dossier.exists()) {
+        qDebug() << "Le dossier n'existe pas!";
+        return false;
+    }
+
+    // Supprimer tous les fichiers dans le dossier
+    Q_FOREACH(QFileInfo info, dossier.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::Files, QDir::DirsFirst)) {
+        if (info.isFile()) {
+            QFile fichier(info.filePath());
+
+            if (!fichier.remove()) {
+                qDebug() << "Impossible de supprimer le fichier" << info.fileName();
+                return false;
+            }
+        }
+        else {
+            supprimerDossier(info.absoluteFilePath());
+        }
+    }
+
+    // Supprimer tous les dossiers vides
+    Q_FOREACH(QFileInfo info, dossier.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden | QDir::Dirs, QDir::DirsFirst)) {
+        if (!QDir(info.absoluteFilePath()).removeRecursively()) {
+            qDebug() << "Impossible de supprimer le dossier" << info.absoluteFilePath();
+            return false;
+        }
+    }
+
+    return dossier.rmdir(cheminDossier);
 }
 
 bool MAIN::deleteFile(const QString& filePath) {
@@ -363,6 +417,14 @@ QString MAIN::detectLanguageJS(QWebEnginePage* page) {
     return QString();
 }
 
+APP::~APP(){
+    for (auto server : httpServers) {
+        delete server;
+    }
+
+    httpServers.clear();
+}
+
 QString APP::LIST(const QString& directoryPath)
 {
     QStringList fileList = MAIN::getListOfFilesInDirectory(directoryPath);
@@ -419,12 +481,20 @@ int APP::HTTPSERVER(QString dir){
     const auto port = httpServer->listen(QHostAddress::Any);
     if (!port) {
         qDebug() << QCoreApplication::translate("Olop", "Server failed to listen on a port.");
-        exit(0);
+        return 0;
     }
 
     httpServer->route("/<arg>", [=](QUrl Url) {
         return MAIN::lireFichier(dir+"/"+Url.toDisplayString());
     });
+
+httpServer->route("/stop", [=]() {
+    QTimer::singleShot(300, httpServer, [httpServer]() {
+        httpServer->deleteLater();
+    });
+    return "Application arrêtée";
+});
+
 
     // Ajouter le nouveau serveur HTTP à la liste
     httpServers.append(httpServer);

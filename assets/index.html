@@ -315,6 +315,36 @@
 }
 
 .ui-resizable-helper { border: 2px dotted #00F; }
+
+/* Pour les navigateurs Webkit */
+::-webkit-scrollbar {
+    width: 10px; 
+    height: 10px; 
+    background: #f5f5f5; 
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px; 
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555; 
+}
+
+/* Pour le thème sombre Webkit */
+body.dark-theme ::-webkit-scrollbar {
+    background: #333; 
+}
+
+body.dark-theme ::-webkit-scrollbar-thumb {
+    background: #555;
+}
+
+body.dark-theme ::-webkit-scrollbar-thumb:hover {
+    background: #777; 
+}
+
         /* Themes de nuit */
         body.dark-theme {
     background-color: #242424;
@@ -926,6 +956,11 @@ function tmpHTML(id, time, content){
                 }
             });
         }
+        function mask(to) {
+            if(to==1){
+                $("#info1").fadeOut("slow");
+            }
+        }
 
         function openSettings() {
     var id = "SETTINGS_" + Math.random().toString(36).substr(2, 9);
@@ -974,18 +1009,30 @@ function tmpHTML(id, time, content){
     // Parcourir toutes les mutations qui ont eu lieu
     for (const mutation of mutationsList) {
         // Si le nœud ajouté est un élément
-        if (mutation.type === 'childList' && mutation.addedNodes.length > 0 && document.body.classList.contains('dark-theme')) {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
             mutation.addedNodes.forEach((node) => {
-                if (node instanceof Element) { // vérifiez si le nœud est un élément
+                if (node instanceof Element) {
+
+                   // Si le nœud est un bouton et n'est PAS à l'intérieur d'une .window-title-bar
+                   if (node.tagName === 'BUTTON' && !node.closest('.window-title-bar')) {
+                        node.classList.add('button');
+                    }
+
+                    // Cherche tous les boutons descendants mais exclut ceux à l'intérieur de .window-title-bar
+                    node.querySelectorAll('button:not(.window-title-bar button)').forEach((btn) => {
+                        btn.classList.add('button');
+                    });
+
+if(document.body.classList.contains('dark-theme')){
+                    // vérifiez si le nœud est un élément
                     // Vérifiez si le nœud ajouté est un lien et ajoutez la classe dark-theme s'il y en a un
-                    //if (node.nodeName === 'A') {
                         node.classList.add('dark-theme');
-                   // }
                     // Si le nœud ajouté a des descendants de type lien, ajoutez leur classe dark-theme
                     const links = node.querySelectorAll('a');
                     links.forEach((link) => {
                         link.classList.add('dark-theme');
                     });
+                }
                 }
             });
         }

@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Olop App</title>
+    <title>Olop</title>
     <style>
         /* Styles CSS */
         body {
@@ -256,13 +256,13 @@
             font-size: 14px;
             font-weight: bold;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s ease;
-            transition: color 0.3s ease;
+            transition: transform 0.3s ease, background-color 0.3s ease, color 0.3s ease;
             cursor: pointer;
             outline: none;
         }
 
         .button:hover {
+            transform: scale(1.05);
             background-color: #007bff;
             color: #ffffff;
         }
@@ -697,39 +697,77 @@ function generateUniqueIdForWC() {
   updateMinimizedButton();
 }
 
-// Fonction pour afficher les fenêtres minimisées
-function viewMinimizedWindows() {
+function MinimisedWIndowListHtml() {
     // Créez un nouvel élément div jQuery pour afficher la liste des fenêtres minimisées
     var windowList = $('<div>').addClass('window-list');
 
-    for (var i = 0; i < minimizedWindows.length; i++) {
-        var windowId = minimizedWindows[i];
-        var windowElement = $('#' + windowId);
+for (var i = 0; i < minimizedWindows.length; i++) {
+    var windowId = minimizedWindows[i];
+    var windowElement = $('#' + windowId);
 
-        var windowItem = $('<div>').addClass('window-item');
-        var windowTitle = windowElement.find('.window-title').text();
+    var windowItem = $('<div>').addClass('window-item');
+    var windowTitle = windowElement.find('.window-title').text();
 
-        // Ajoutez un bouton de restauration pour chaque fenêtre minimisée
-        var restoreButton = $('<button>').addClass('window-restore-button')
-                                         .text('Restaurer')
-                                         .attr('data-window-id', windowId);
+    // Ajoutez un bouton de restauration pour chaque fenêtre minimisée
+    var restoreButton = $('<button>').addClass('window-restore-button')
+                                     .text('Restaurer')
+                                     .attr('data-window-id', windowId);
+       
+                                     var closeButton = $('<button>').addClass('window-close-button')
+                                     .text('✖')
+                                     .attr('data-window-id', windowId);
+    windowItem.text(windowTitle).append("&nbsp;");
+    windowItem.append(restoreButton);
+    windowItem.append(closeButton);
+    windowList.append(windowItem);
+}
 
-        windowItem.text(windowTitle);
-        windowItem.append(restoreButton);
-        windowList.append(windowItem);
-    }
+return windowList.get(0).outerHTML;
+}
 
-    var windowListHTML = windowList.get(0).outerHTML;
-    openWindow("", "Fenêtres minimisées", windowListHTML, 0);
-    $(".window-list").on("click", ".window-restore-button", function() {
-    var id = $(this).attr('data-window-id');
-    var index = minimizedWindows.indexOf(id);
-    minimizedWindows.splice(index, 1);
-    $("#" + id).show();
-    // Supprimer la liste des fenêtres minimisées après avoir restauré la fenêtre
-    $('.window-list').parent().parent().remove();
-    updateMinimizedButton(); 
-});
+// Fonction pour afficher les fenêtres minimisées
+function viewMinimizedWindows() {
+    var windowListHTML = MinimisedWIndowListHtml();
+    var minisedwindows = openWindow("", "Fenêtres minimisées", windowListHTML, 0);
+
+    // Le gestionnaire d'événements est attaché à l'élément parent 'minisedwindows' et délégué aux éléments cibles
+    $(minisedwindows).on("click", ".window-restore-button", function() {
+        var id = $(this).attr('data-window-id');
+        var index = minimizedWindows.indexOf(id);
+        minimizedWindows.splice(index, 1);
+        $("#" + id).show();
+        closeWindow(minisedwindows, -1);
+        updateMinimizedButton();
+    });
+
+    $(minisedwindows).on("click", ".window-close-button", function() {
+        var id = $(this).attr('data-window-id');
+        var isnotif= $("#"+id).attr('isnotif');
+        var index = minimizedWindows.indexOf(id);
+        if (index !== -1) {
+            minimizedWindows.splice(index, 1);
+        }
+        closeWindow(document.getElementById(id), -1);
+        $(minisedwindows).find('.window-content').html(MinimisedWIndowListHtml()); // Mettre à jour la liste après fermeture
+        
+        updateMinimizedButton();
+        console.log(isnotif);
+        if(isnotif==1){
+            if (notificationCount === 1) {
+                $("#notificationBar").fadeOut("slow");
+                notificationCount = 0;
+            } else {
+                notificationCount--;
+            }
+            document.getElementById("notificationCount").innerText = notificationCount;
+        }
+        var MinimizedWindow = MinimisedWIndowListHtml();
+        if (MinimizedWindow !== "<div class=\"window-list\"></div>") {
+            $(minisedwindows).find('.window-content').html(MinimizedWindow);
+        } else {
+            closeWindow(minisedwindows, -1);
+        }
+    });
 }
 
 async function closeMinimizedWindowList() {

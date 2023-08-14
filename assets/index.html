@@ -407,6 +407,13 @@ a.dark-theme {
     color: yellow;
 }
 
+.button.dark-theme:hover {
+    transform: scale(1.05);
+    transition: background-color 0.3s ease, color 0.3s ease;
+            background-color: #f3f3f3;
+            color: #007bff;
+        }
+
     </style>
     <script src="jquery.js"></script>
     <script src="Olop.js"></script>
@@ -608,7 +615,7 @@ function createWindowElement(icon, title, content, isnotif, id, useIframe) {
     windowTitle.append(iconImage).append(title);
     windowTitleBar.append(windowTitle).append("&nbsp;").append(minimizeButton).append('&nbsp;').append(closeButton);
     windowElement.append(windowTitleBar).append(windowContent);
-  
+        windowElement.attr('isnotif', isnotif);
 windowElement.ready(function() {
 
     windowElement.draggable({
@@ -689,7 +696,28 @@ function generateUniqueIdForWC() {
         if (index !== -1) {
             minimizedWindows.splice(index, 1);
         }
+        var windowContentElement = button.parentNode.parentNode.parentNode.querySelector('.window-content');
+    if (windowContentElement) {
+        const observer = windowContentElement.observer;
+        if (observer) {
+            observer.disconnect();
+        }
+    }
+    } else if(isdb === -1){
+        button.remove();
 
+        var id = button.id;
+        var index = minimizedWindows.indexOf(id);
+        if (index !== -1) {
+            minimizedWindows.splice(index, 1);
+        }
+        var windowContentElement = button.querySelector('.window-content');
+    if (windowContentElement) {
+        const observer = windowContentElement.observer;
+        if (observer) {
+            observer.disconnect();
+        }
+    }
     } else {
         button.parentNode.parentNode.remove();
         var id = button.parentNode.parentNode.id;
@@ -697,14 +725,13 @@ function generateUniqueIdForWC() {
         if (index !== -1) {
             minimizedWindows.splice(index, 1);
         }
-
-    }
-    var windowContentElement = button.parentNode.parentNode.querySelector('.window-content');
+        var windowContentElement = button.parentNode.parentNode.querySelector('.window-content');
     if (windowContentElement) {
         const observer = windowContentElement.observer;
         if (observer) {
             observer.disconnect();
         }
+    }
     }
 }
 
@@ -900,7 +927,7 @@ async function closeMinimizedWindowList() {
         }
 
         function getAppDescription(nom, version, developpeur, description, app) {
-            return `${description}<div style='text-align: right;'><i>${nom} version ${version}, <br>développé par ${developpeur}</i><br><span style='text-align: left'><button type="button" class="button" onclick="deleteApp(this, '`+app+`');">Déinstaller</button></span><button type="button" class="button" onclick="closeWindow(this,1);">Annuler</button>&nbsp;<button type="button" class="button" onclick="Launch(this, '`+app+`');">Lancer</button></div><br>`;
+            return `${description}<div style='text-align: right;'><i>${nom} version ${version}, <br>développé par ${developpeur}</i><br><span style='text-align: left'><button type="button" onclick="deleteApp(this, '`+app+`');">Déinstaller</button></span><button type="button" onclick="closeWindow(this,1);">Annuler</button>&nbsp;<button type="button" onclick="Launch(this, '`+app+`');">Lancer</button></div><br>`;
         }
 
         function Launch(button, app) {
@@ -938,7 +965,7 @@ function tmpHTML(id, time, content){
 
         function update() {
             $("#button-update").html("Recherche de mises à jour...")
-            $("#info1").show("slide");
+            $("#info1").fadeIn("slow");
             $.ajax({
                 url: "https://olopsytems.000webhostapp.com/Checkupdate.php?ver=alpha-1.1",
                 data: { id: $(this).attr("id") },
@@ -946,7 +973,7 @@ function tmpHTML(id, time, content){
                 success: function(recup) {
                     console.log(recup);
                     if (recup.indexOf("0") !== -1) {
-                        $("#button-update").html("Aucune mise à jour disponible.<button onclick=\"mask(1);\">x</button>")
+                        $("#button-update").html("Aucune mise à jour disponible.<button class=\"button\" onclick=\"mask(1);\">x</button>")
                     } else {
                         $("#button-update").html("Mise à jour disponible. Merci de la télécharger." /*, souhaitez-vous l'installer ? <button onClick=\"install();\">Oui</button><button onclick=\"mask(1);\">Non</button>"*/ );
                     }
@@ -1077,7 +1104,7 @@ setInterval(updateTheme, 60000); // Vérifie le thème chaque minute
             <li onclick="loadPage('home')">Accueil</li>
             <li onclick="loadPage('Library')">Bibliothèque</li>
         </ul>
-        <div id="info1">
+        <div id="info1" style="display: none;">
             <div id="button-update"></div>
         </div><br>
         <div id="notificationBar" style="display: none;">

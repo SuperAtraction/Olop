@@ -23,6 +23,8 @@ public:
     static bool ecrireDansFichier(const QString& cheminFichier, const QString& contenu);
     static bool INIT();
     static int SERVER();
+    static void executeInMainThread(std::function<void()> func);
+    static bool isVersionGreater(const QString& newVersion, const QString& oldVersion);
     static bool copyFile(const QString& sourceFilePath, const QString& destinationFilePath);
     static bool moveFile(const QString& sourceFilePath, const QString& destinationFilePath);
     static bool deleteFile(const QString& filePath);

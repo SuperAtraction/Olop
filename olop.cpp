@@ -134,47 +134,87 @@ int MAIN::SERVER(){
 
 httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
     QWebEnginePage *page = w->ui->Web->page();
-
     auto args = Url.toDisplayString().split("-OLOP-");
     auto appfile = args[0];
     auto id = args[1];
     auto decodedApp = APP::decodeApp(lireFichier(appfile));
-    auto appdir = appfile.split(".app")[0]+"/";
-    auto packageurl = decodedApp[3]+"/"+decodedApp[1]+"-package.zip";
-    qDebug() << packageurl;
+    auto appdir = appfile.split(".app")[0] + "/";
+    auto packageurl = decodedApp[3] + "/" + QUrl::toPercentEncoding(decodedApp[1]) + "-package.zip";
+    auto appurl = decodedApp[3] + "/" + QUrl::toPercentEncoding(decodedApp[1]) + ".txt";
+    qDebug() << decodedApp;
 
-    std::function<void()> launchCode = [=](){
-        int port = APP::HTTPSERVER(appdir);
-        qDebug() << port;
-        page->runJavaScript("findWindowAndConvertToIframe(\""+id+"\", \"http://localhost:"+QString::number(port)+"/index.html\");");
-    };
-
-    if(QDir(appdir).exists() == false) {
-        QTimer *timer = new QTimer; // Créer un nouveau QTimer sans parent
-        timer->setInterval(1000); // Régler l'intervalle à 1000 ms (1 seconde)
+    // Configurez le timer
+    auto setupTimerAndCounter = [&](QSharedPointer<QString> message, QPointer<QTimer> timer) {
+        timer->setInterval(1000);
 
         int counter = 0;
-
         QObject::connect(timer, &QTimer::timeout, [=]() mutable {
             counter = counter % 4;
-            QString points = QString(".").repeated(counter++); // Ajouter un point pour chaque seconde écoulée
-            QString jsCode = QString("$(\"#%1\").html(\"Installation en cours de %2%3\");")
+            QString points = QString(".").repeated(counter++);
+            QString jsCode = QString("$(\"#%1\").html(\"" + *message + " en cours de %2%3\");")
                                  .arg(id).arg(decodedApp[1]).arg(points);
             page->runJavaScript(jsCode);
         });
         timer->start();
+    };
 
-        std::thread t([=]() {
-            qDebug() << MAIN::ecrireDansFichier(QDir::tempPath()+"/tmp.zip", NETWORK::Download(QUrl(packageurl)));
-            qDebug() << FILES::unZip(QDir::tempPath()+"/tmp.zip", appdir);
-            timer->stop();
-            timer->deleteLater();
-            QMetaObject::invokeMethod(page, launchCode);
-        });
-        t.detach();
-    } else {
-        QMetaObject::invokeMethod(page, launchCode);
-    }
+    QSharedPointer<QString> currentMessage(new QString("Lancement"));
+    QPointer<QTimer> primaryTimer = new QTimer();
+    setupTimerAndCounter(currentMessage, primaryTimer);
+    APP *app = new APP;
+
+    auto launch = [=](){
+        if(!primaryTimer) {
+            qDebug() << "primaryTimer is null!";
+        } else {
+            primaryTimer->stop();
+        }
+        primaryTimer->deleteLater();  // puis, demandez la suppression
+        int port = app->HTTPSERVER(appdir);
+        qDebug() << port;
+        page->runJavaScript("findWindowAndConvertToIframe(\"" + id + "\", \"http://localhost:" + QString::number(port) + "/index.html\");");
+    };
+
+    QTimer::singleShot(10, [=]() {
+        if (!QDir(appdir).exists()) {
+            MAIN::ecrireDansFichier(QDir::tempPath() + "/tmp.zip", NETWORK::Download(QUrl(packageurl)));
+            FILES::unZip(QDir::tempPath() + "/tmp.zip", appdir);
+
+            primaryTimer->stop();
+            int port = APP::HTTPSERVER(appdir);
+            page->runJavaScript("findWindowAndConvertToIframe(\"" + id + "\", \"http://localhost:" + QString::number(port) + "/index.html\");");
+        } else {
+            QString newappfile = NETWORK::Download(QUrl(appurl));
+            qDebug() << appurl;
+            if (!newappfile.isEmpty() && newappfile != "ERR") {
+                auto newappdecoded = APP::decodeApp(newappfile);
+                if (newappdecoded[2] != decodedApp[2]) {
+                    qDebug() << "Mise à jour disponible.";
+                    int response;
+                    response = QMessageBox::question(w, "Mise à jour", "L'application " + decodedApp[1] + " n'est pas à sa dernière version.\nSouhaitez-vous la mettre à jour ?", QMessageBox::Yes | QMessageBox::No);
+
+                    if (response == QMessageBox::Yes) {
+                        std::thread t([=](){
+                            qDebug() << "Mise à jour en cours...";
+                            MAIN::ecrireDansFichier(QDir::tempPath() + "/tmp.zip", NETWORK::Download(QUrl(packageurl)));
+                            FILES::unZip(QDir::tempPath() + "/tmp.zip", appdir);
+                            qDebug() << "Dézippé";
+                            MAIN::ecrireDansFichier(appfile, newappfile);
+                            executeInMainThread(launch);
+                        });
+                        t.detach();
+                    }else {
+                        launch();
+                    }
+                }else {
+                    launch();
+                }
+            }else {
+                qDebug() << "Erreur d'update (vérifiez votre connexion internet)";
+                launch();
+            }
+        }
+    });
 
     return QString("Chargement...");
 });
@@ -260,6 +300,30 @@ httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
     qDebug() << port;
     return port;
 }
+
+void MAIN::executeInMainThread(std::function<void()> func) {
+    QMetaObject::invokeMethod(w, [=]() { func(); }, Qt::QueuedConnection);
+}
+
+bool MAIN::isVersionGreater(const QString& newVersion, const QString& oldVersion) {
+    QStringList newComponents = newVersion.split(".");
+    QStringList oldComponents = oldVersion.split(".");
+
+    int n = qMin(newComponents.size(), oldComponents.size());
+
+    for(int i = 0; i < n; ++i) {
+        int newComponent = newComponents[i].toInt();
+        int oldComponent = oldComponents[i].toInt();
+
+        if(newComponent > oldComponent) {
+            return true;
+        } else if(newComponent < oldComponent) {
+            return false;
+        }
+    }
+    return newComponents.size() > oldComponents.size();
+}
+
 
 bool MAIN::mkdir(QString path) {
     QDir dir = path;
@@ -483,9 +547,26 @@ int APP::HTTPSERVER(QString dir){
         qDebug() << QCoreApplication::translate("Olop", "Server failed to listen on a port.");
         return 0;
     }
+    QString URL = NULL;
+
+    httpServer->route("/jquery.js", [=](QUrl Url){
+        return QHttpServerResponse::fromFile(QStringLiteral(":/assets/jquery.js"));
+    });
+
+    httpServer->route("/setURL/<arg>", [=](QUrl Url){
+        return "OK";
+    });
 
     httpServer->route("/<arg>", [=](QUrl Url) {
-        return MAIN::lireFichier(dir+"/"+Url.toDisplayString());
+        QString file = MAIN::lireFichier(dir+"/"+Url.toDisplayString());
+        if(file==""){
+            QByteArray DOWN = NETWORK::Download(Url);
+            if(DOWN =="ERR"){
+                DOWN = NETWORK::Download(QUrl(QString(URL+Url.toDisplayString())));
+            }
+        }else {
+            return file;
+        }
     });
 
 httpServer->route("/stop", [=]() {
@@ -532,6 +613,7 @@ QByteArray NETWORK::Download(const QUrl Url) {
         } else {
             qWarning() << "Erreur lors du téléchargement : " << reply->errorString();
             qWarning() << "Réponse du serveur : " << reply->readAll();
+            downloadedData =  QByteArray("ERR");
         }
         loop.quit();
     });

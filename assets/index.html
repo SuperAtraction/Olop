@@ -487,7 +487,12 @@ a.dark-theme {
             } else if (type === 1) {
                 icon = "Ok.png";
             }
-            openWindow(icon, title, message, 1);
+            var notificationContent = `
+    <span>${message}</span><div style='display: flex; flex-direction: column; align-items: flex-end;'>
+    <button type='button' onclick='closeWindow(this, 1, 1)'>FERMER</button>
+</div>
+`;
+var notification = openWindow(icon, title, notificationContent, 1);
 
             var notificationBar = $('#notificationBar');
             var notificationCountElement = $('#notificationCount');
@@ -686,7 +691,7 @@ function generateUniqueIdForWC() {
     return "window_content_" + Math.random().toString(36).substr(2, 9);
 }
 
-        function closeWindow(button, isdb) {
+        function closeWindow(button, isdb, isnotif) {
     if (isdb === 1) {
         // Si la fenêtre est minimisée, fermer et supprimer la fenêtre de la liste des fenêtres minimisées
         button.parentNode.parentNode.parentNode.remove();
@@ -732,6 +737,14 @@ function generateUniqueIdForWC() {
             observer.disconnect();
         }
     }
+    }if(isnotif==1){
+        if (notificationCount === 1) {
+                $("#notificationBar").fadeOut("slow");
+                notificationCount = 0;
+            } else {
+                notificationCount--;
+            }
+            document.getElementById("notificationCount").innerText = notificationCount;
     }
 }
 

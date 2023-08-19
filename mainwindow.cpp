@@ -40,4 +40,3 @@ void MainWindow::on_actionQuitter_triggered()
 {
     exit(0);
 }
-

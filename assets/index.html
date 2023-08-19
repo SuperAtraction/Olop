@@ -429,24 +429,78 @@ a.dark-theme {
         var themeMode = 1;
         var FirstTATheme = 21;
         var secondTATheme = 8;
+        var pageCache = {};
+        var useCache = 1;
 
         function loadPage(page) {
-            var loader = $("#loader");
-            var content = $("#content");
-            loader.show();
-            content.hide();
+    var loader = $("#loader");
+    var content = $("#content");
+    
+    loader.show();
+    content.hide();
 
-            content.load(page + ".html", function(response, status, xhr) {
-                loader.hide();
-                if (status === "error") {
-                    var errorMessage = "Erreur: " + xhr.status + " " + xhr.statusText;
-                    showNotification(-1, "Erreur "+xhr.status, errorMessage);
-                } else {
-                    content.show();
+    if (useCache === 1 && pageCache[page]) {
+        content.html(pageCache[page]);
+        loader.hide();
+        content.show();
+    } else {
+        content.load(page + ".html", function(response, status, xhr) {
+            loader.hide();
+            if (status === "error") {
+                var errorMessage = "Erreur: " + xhr.status + " " + xhr.statusText;
+                showNotification(-1, "Erreur "+xhr.status, errorMessage);
+            } else {
+                if (useCache === 1) {
+                    // Si useCache est défini à 1, stockez le contenu chargé dans le cache
+                    pageCache[page] = response;
                 }
-            });
-        }
+                content.show();
+            }
+        });
+    }
+}
 
+function preloadPage(page) {
+    if (useCache === 1) {
+    $.get(page + ".html", function(response) {
+        pageCache[page] = response;
+    });
+}
+}
+
+function clearPageCache() {
+    pageCache = {};
+}
+
+function preloadAllPages() {
+    return new Promise((resolve) => {
+        $.get("pages.txt", function(data) {
+            // Divisez les données en lignes
+            var pages = data.split("\n");
+            
+            var promises = []; // Utilisé pour stocker toutes les promesses de préchargement
+
+            // Préchargez chaque page
+            for (var i = 0; i < pages.length; i++) {
+                // Enlevez les espaces blancs inutiles
+                var page = pages[i].trim();
+                
+                if (page) { // Ignorez les lignes vides
+                    promises.push($.get(page + ".html", function(response) {
+                        if (useCache === 1) {
+                            pageCache[page] = response;
+                        }
+                    }));
+                }
+            }
+
+            // Lorsque toutes les pages sont préchargées, masquez le loader et résolvez la promesse
+            $.when(...promises).then(() => {
+                resolve();
+            });
+        });
+    });
+}
         // Afficher ou masquer le menu
         function toggleMenu() {
     var sidebar = document.getElementById("sidebar");
@@ -1094,15 +1148,24 @@ observer.observe(document.body, { childList: true, subtree: true });
 
 setTimeout(() => {
     updateTheme();
-setInterval(updateTheme, 60000); // Vérifie le thème chaque minute
-    loadPage("home");
-            updateTime();
-            update();
-            toggleMenu();
-    
-      // Masquer le loader
-      var loader = document.getElementById('loader');
-      loader.style.display = 'none';
+    setInterval(updateTheme, 60000); // Vérifie le thème chaque minute
+
+    var loader = document.getElementById('loader');
+    loader.style.display = 'block'; // Affichez le loader avant de précharger les pages
+
+    preloadAllPages().then(() => {
+        // Lorsque toutes les pages sont préchargées, continuez avec le reste de la logique
+
+        // Charger la page 'home'
+        loadPage("home");
+
+        updateTime();
+        update();
+        toggleMenu();
+
+        // Masquer le loader
+        loader.style.display = 'none';
+    });
 
 }, 10);
 

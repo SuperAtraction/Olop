@@ -12,5 +12,6 @@
         <file>assets/Store.html</file>
         <file>assets/settings.html</file>
         <file>assets/Olop.js</file>
+        <file>assets/pages.txt</file>
     </qresource>
 </RCC>

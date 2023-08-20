@@ -13,5 +13,7 @@
         <file>assets/settings.html</file>
         <file>assets/Olop.js</file>
         <file>assets/pages.txt</file>
+        <file>assets/images.txt</file>
+        <file>assets/avertissement.html</file>
     </qresource>
 </RCC>

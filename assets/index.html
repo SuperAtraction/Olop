@@ -430,6 +430,7 @@ a.dark-theme {
         var FirstTATheme = 21;
         var secondTATheme = 8;
         var pageCache = {};
+        var imageCache = {};
         var useCache = 1;
 
         function loadPage(page) {
@@ -501,6 +502,72 @@ function preloadAllPages() {
         });
     });
 }
+
+function preloadImage(src) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            imageCache[src] = img;
+            resolve(img);
+        };
+        img.onerror = reject;
+        img.src = src;
+    });
+}
+
+function getImageFromCache(src) {
+    if (imageCache[src]) {
+        return Promise.resolve(imageCache[src]);
+    } else {
+        return preloadImage(src);
+    }
+}
+
+function preloadAllImages() {
+    return new Promise((resolve) => {
+        $.get("images.txt", function(data) {
+            // Divisez les données en lignes
+            var images = data.split("\n").filter(Boolean);
+            
+            var imagesLoaded = 0;
+
+            images.forEach(function(imageUrl) {
+                // Supprimez les espaces blancs inutiles
+                imageUrl = imageUrl.trim();
+
+                var img = new Image();
+                img.onload = function() {
+                    // Stockez l'image préchargée dans le cache
+                    imageCache[imageUrl] = this.src;
+                    imagesLoaded++;
+
+                    // Vérifiez si toutes les images ont été préchargées
+                    if (imagesLoaded === images.length) {
+                        resolve();
+                    }
+                };
+
+                img.onerror = function() {
+                    console.warn("Failed to preload image:", imageUrl);
+                    imagesLoaded++;
+
+                    // Vérifiez si toutes les images ont été préchargées (y compris celles qui n'ont pas été chargées)
+                    if (imagesLoaded === images.length) {
+                        resolve();
+                    }
+                };
+
+                img.src = imageUrl;
+            });
+
+            // Gérer le cas où il n'y a aucune image à précharger
+            if (images.length === 0) {
+                resolve();
+            }
+        });
+    });
+}
+
         // Afficher ou masquer le menu
         function toggleMenu() {
     var sidebar = document.getElementById("sidebar");
@@ -615,16 +682,36 @@ function openWindow(icon, title, content, isnotif, id, useIframe) {
     return windowElement; // Retourne l'élément de fenêtre créé
 }
 
-// Créer un élément de fenêtre avec le titre et le contenu spécifiés
 function createWindowElement(icon, title, content, isnotif, id, useIframe) {
     if (!id) {
-        id = "window-" + Math.random().toString(36).substr(2, 9); // générer un ID seulement si aucun ID n'est passé
+        id = "window-" + Math.random().toString(36).substr(2, 9); 
     }
+
     var idW = Math.random().toString(36).substr(2, 9);
-    var windowElement = $('<div class="window" id="'+idW+'"></div>');
+    var windowElement = $('<div class="window" id="' + idW + '"></div>');
     var windowTitleBar = $('<div class="window-title-bar"></div>');
     var windowTitle = $('<span class="window-title"></span>');
-    var iconImage = $('<img class="window-icon" src="' + icon + '">');
+
+    function setIcon(src) {
+        var iconImage = $('<img class="window-icon" src="' + src + '">');
+        windowTitle.append(iconImage).append(title);
+    }
+
+    if (imageCache[icon]) {
+        setIcon(imageCache[icon]);
+    } else {
+        var img = new Image();
+        img.onload = function() {
+            imageCache[icon] = this.src;
+            setIcon(this.src);
+        };
+        img.onerror = function() {
+            console.warn("Icon loading failed, setting default icon.");
+            setIcon('Olop.png'); 
+        };
+        img.src = icon;
+    }
+
     var closeButton = $('<button type="button">&#10060;</button>').click(function() {
         if (isnotif === 1) {
             if (notificationCount === 1) {
@@ -637,66 +724,59 @@ function createWindowElement(icon, title, content, isnotif, id, useIframe) {
         }
         closeWindow(this);
     });
-    
-    // Ajouter la classe dark-theme à la fenêtre si le thème sombre est actif
+
+    var windowContentId;
+    if (!id) {
+        windowContentId = generateUniqueIdForWC();
+        while (windowContentIds.includes(windowContentId)) {
+            windowContentId = generateUniqueIdForWC();
+        }
+    } else {
+        windowContentId = id;
+    }
+
+    var windowContent;
+    if (useIframe) {
+        windowContent = $('<iframe class="window-content" id="' + id + '" src="' + content + '"></iframe>');
+    } else {
+        windowContent = $('<div class="window-content" id="' + id + '">' + content + '</div>');
+    }
+
+    var minimizeButton = $('<button type="button" class="minimize-button">&#9473;</button>').click(function() {
+        minimizeWindow(idW);
+    });
+
     if (document.body.classList.contains('dark-theme')) {
+        minimizeButton.addClass('dark-theme');
+        windowTitleBar.addClass('dark-theme');
         windowElement.addClass('dark-theme');
     }
 
-    var windowContent;
-    if(!id){ var windowContentId = generateUniqueIdForWC();
-    // Vérifier si l'ID généré est unique, sinon en générer un nouveau
-    while (windowContentIds.includes(windowContentId)) {
-        windowContentId = generateUniqueIdForWC();
-    }}else {
-        var windowContentId = id;
-    }
-    windowContentIds.push(windowContentId); // Ajouter l'ID à la liste des IDs existants
-    var windowContent;
-
-    if (useIframe) {
-        // Créez une iframe si useIframe est vrai
-        windowContent = $('<iframe class="window-content" id="' + id + '" src="' + content + '"></iframe>');
-    } else {
-        // Créez un div avec l'id spécifié si useIframe est faux
-        windowContent = $('<div class="window-content" id="' + id + '">' + content + '</div>');
-    }
-    var minimizeButton = $('<button type="button" class="minimize-button">&#9473;</button>').click(function () {
-        minimizeWindow(idW);
-    });
-    if (document.body.classList.contains('dark-theme')) {
-        minimizeButton.addClass('dark-theme');
-    }
-    if (document.body.classList.contains('dark-theme')) {
-        windowTitleBar.addClass('dark-theme');
-    }
-
-    windowTitle.append(iconImage).append(title);
     windowTitleBar.append(windowTitle).append("&nbsp;").append(minimizeButton).append('&nbsp;').append(closeButton);
     windowElement.append(windowTitleBar).append(windowContent);
-        windowElement.attr('isnotif', isnotif);
-windowElement.ready(function() {
+    windowElement.attr('isnotif', isnotif);
 
-    windowElement.draggable({
-    handle: ".window-title-bar",
-    containment: "parent"
-  });
-    updateMinSize(windowElement, useIframe);
-    const contentObserver = new MutationObserver((mutationsList, observer) => {
-        for (const mutation of mutationsList) {
-            if (mutation.type === 'childList' || mutation.type === 'characterData' || mutation.type === 'attributes') {
-                // Mettre à jour la taille minimale si le contenu change
-                setTimeout(() => {
-                    updateMinSize(windowElement, useIframe);
-                }, 500);
+    windowElement.ready(function() {
+        windowElement.draggable({
+            handle: ".window-title-bar",
+            containment: "window"
+        });
+
+        updateMinSize(windowElement, useIframe);
+
+        const contentObserver = new MutationObserver((mutationsList, observer) => {
+            for (const mutation of mutationsList) {
+                if (mutation.type === 'childList' || mutation.type === 'characterData' || mutation.type === 'attributes') {
+                    setTimeout(() => {
+                        updateMinSize(windowElement, useIframe);
+                    }, 500);
+                }
             }
-        }
-    });
+        });
 
-    // Configuration de l'observateur pour surveiller les mutations de type childList (ajouts/suppressions d'éléments)
-    const config = { attributes: true, childList: true, characterData: true, subtree: true };
-    contentObserver.observe(windowContent.get(0), config);
-});
+        const config = { attributes: true, childList: true, characterData: true, subtree: true };
+        contentObserver.observe(windowContent.get(0), config);
+    });
 
     return windowElement.get(0);
 }
@@ -1153,8 +1233,9 @@ setTimeout(() => {
     var loader = document.getElementById('loader');
     loader.style.display = 'block'; // Affichez le loader avant de précharger les pages
 
-    preloadAllPages().then(() => {
-        // Lorsque toutes les pages sont préchargées, continuez avec le reste de la logique
+    // Exécutez preloadAllPages() et preloadAllImages() simultanément
+    Promise.all([preloadAllPages(), preloadAllImages()]).then(() => {
+        // Lorsque toutes les pages ET toutes les images sont préchargées, continuez avec le reste de la logique
 
         // Charger la page 'home'
         loadPage("home");
@@ -1162,7 +1243,10 @@ setTimeout(() => {
         updateTime();
         update();
         toggleMenu();
-
+        $.get("avertissement.html", function(data) {
+            showNotification(-1, "Avertissement sur Olop", data);
+        });
+        
         // Masquer le loader
         loader.style.display = 'none';
     });

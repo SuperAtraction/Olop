@@ -124,12 +124,12 @@ int MAIN::SERVER(){
             QMessageBox::critical(MAIN::w, "Erreur", "Erreur lors de l'installation de l'application "+app[1]);
             return "Erreur lors de l'installation de l'application "+app[1];
         }
-        MAIN::w->ui->Web->page()->runJavaScript("showNotification(0, \"Installation d'une application\", \"L\'application " + QUrl::toPercentEncoding(app[1]) + " est prête à être installée.<br>Elle sera installée lorsque vous la démarrerez.\");");
+        MAIN::w->ui->Web->page()->runJavaScript("showNotification(0, \"Installation d'une application\", \"L\'application " + app[1] + " est prête à être installée.<br>Elle sera installée lorsque vous la démarrerez.\");");
         MAIN::w->activateWindow();
         MAIN::w->raise();
         MAIN::w->showNormal();
 
-        return "<script>location.href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\";</script><noscript><a href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\">Cliquez ici</a> et activez javascript</noscript>";
+        return "<script>location.href=\"https://olop.rf.gd/Store/?Installed="+QUrl::toPercentEncoding(app[1])+"\";</script><noscript><a href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\">Cliquez ici</a> et activez javascript</noscript>";
     });
 
 httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {

@@ -625,14 +625,24 @@ QByteArray NETWORK::Download(const QUrl Url) {
 bool FILES::unZip(const QString &file, const QString &dest) {
 #ifdef Q_OS_WIN
     QString program = "7z.exe";
+    QStringList arguments;
+    arguments << "x" << file << "-o" + dest;
 #elif defined(Q_OS_LINUX)
     QString program = "/usr/bin/unzip";
+    QStringList arguments;
+    arguments << file << "-d" << dest;
 #else
-    --
+    // Gérer les autres systèmes d'exploitation
+    return false;
 #endif
 
     QProcess unzip;
-    unzip.start(program, QStringList() << file << "-d" << dest);
+    unzip.start(program, arguments);
     unzip.waitForFinished();
+
+    // Affichez la sortie pour le dépannage
+    qDebug() << "Standard Output:" << unzip.readAllStandardOutput();
+    qDebug() << "Standard Error:" << unzip.readAllStandardError();
+
     return (unzip.exitCode() == 0);
 }

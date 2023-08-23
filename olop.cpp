@@ -151,14 +151,14 @@ httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
         QObject::connect(timer, &QTimer::timeout, [=]() mutable {
             counter = counter % 4;
             QString points = QString(".").repeated(counter++);
-            QString jsCode = QString("$(\"#%1\").html(\"" + *message + " en cours de %2%3\");")
-                                 .arg(id).arg(decodedApp[1]).arg(points);
+            QString jsCode = QString("$(\"#%1\").html(\"" + *message + "%2\");")
+                                 .arg(id).arg(points);
             page->runJavaScript(jsCode);
         });
         timer->start();
     };
 
-    QSharedPointer<QString> currentMessage(new QString("Lancement"));
+    QSharedPointer<QString> currentMessage(new QString("Lancement en cours de "+decodedApp[1]));
     QPointer<QTimer> primaryTimer = new QTimer();
     setupTimerAndCounter(currentMessage, primaryTimer);
     APP *app = new APP;
@@ -196,10 +196,14 @@ httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
                     if (response == QMessageBox::Yes) {
                         std::thread t([=](){
                             qDebug() << "Mise à jour en cours...";
+                            *currentMessage="Téléchargement de la mise à jour de "+decodedApp[1]+" en cours";
                             MAIN::ecrireDansFichier(QDir::tempPath() + "/tmp.zip", NETWORK::Download(QUrl(packageurl)));
+                            *currentMessage="Installation de la mise à jour de "+decodedApp[1]+" en cours";
                             FILES::unZip(QDir::tempPath() + "/tmp.zip", appdir);
                             qDebug() << "Dézippé";
+                            *currentMessage="Finitialisation de la mise à jour de "+decodedApp[1];
                             MAIN::ecrireDansFichier(appfile, newappfile);
+                            *currentMessage="Mise à jour terminée. Lancement de "+decodedApp[1]+" en cours";
                             executeInMainThread(launch);
                         });
                         t.detach();
@@ -626,11 +630,11 @@ bool FILES::unZip(const QString &file, const QString &dest) {
 #ifdef Q_OS_WIN
     QString program = "7z.exe";
     QStringList arguments;
-    arguments << "x" << file << "-o" + dest;
+    arguments << "x" << file << "-o" + dest << "-aoa";
 #elif defined(Q_OS_LINUX)
     QString program = "/usr/bin/unzip";
     QStringList arguments;
-    arguments << file << "-d" << dest;
+    arguments << "-o" << file << "-d" << dest;
 #else
     // Gérer les autres systèmes d'exploitation
     return false;

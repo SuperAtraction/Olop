@@ -30,7 +30,7 @@ public:
     static bool deleteFile(const QString& filePath);
     static bool supprimerDossier(const QString& cheminDossier);
     static bool mkdir(QString path);
-    static QStringList getListOfFilesInDirectory(const QString& directoryPath);
+    static QStringList getListOfFilesInDirectory(const QString& directoryPath, bool includesubdir=false, bool includeDirs = false);
     static QString lireFichier(const QString& cheminFichier);
     static QString detectLanguageJS(QWebEnginePage* page);
 };
@@ -53,7 +53,7 @@ public:
 
 class FILES {
 public:
-    static bool unZip(const QString &file, const QString &dest);
+    static bool unZip(const QString &file, const QString &dest, std::function<void()> cleaningCallback = nullptr);
 };
 
 #endif // OLOP_HPP

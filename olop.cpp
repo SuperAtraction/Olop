@@ -199,7 +199,9 @@ httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
                             *currentMessage="Téléchargement de la mise à jour de "+decodedApp[1]+" en cours";
                             MAIN::ecrireDansFichier(QDir::tempPath() + "/tmp.zip", NETWORK::Download(QUrl(packageurl)));
                             *currentMessage="Installation de la mise à jour de "+decodedApp[1]+" en cours";
-                            FILES::unZip(QDir::tempPath() + "/tmp.zip", appdir);
+                            FILES::unZip(QDir::tempPath() + "/tmp.zip", appdir, [=](){
+                                *currentMessage="Nettoyage";
+                            });
                             qDebug() << "Dézippé";
                             *currentMessage="Finitialisation de la mise à jour de "+decodedApp[1];
                             MAIN::ecrireDansFichier(appfile, newappfile);
@@ -425,9 +427,10 @@ bool MAIN::moveFile(const QString& sourceFilePath, const QString& destinationFil
     return true;
 }
 
-QStringList MAIN::getListOfFilesInDirectory(const QString& directoryPath)
+QStringList MAIN::getListOfFilesInDirectory(const QString& directoryPath, bool includesubdir, bool includeDirs)
 {
     QDir directory(directoryPath);
+    QStringList fileList;
 
     // Vérifier si le répertoire existe
     if (!directory.exists()) {
@@ -435,16 +438,24 @@ QStringList MAIN::getListOfFilesInDirectory(const QString& directoryPath)
             return QStringList();
     }
 
-    // Obtenir la liste des fichiers dans le répertoire
-    QFileInfoList fileInfoList = directory.entryInfoList(QDir::Files);
+    QFileInfoList fileInfoList = directory.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
 
-    QStringList fileList;
     foreach (const QFileInfo& fileInfo, fileInfoList) {
-        fileList.append(fileInfo.absoluteFilePath());
+        if (fileInfo.isDir()) {
+            if (includesubdir) {
+                fileList.append(getListOfFilesInDirectory(fileInfo.absoluteFilePath(), true, includeDirs)); // appel récursif pour les sous-dossiers
+            }
+            if (includeDirs) {
+                fileList.append(fileInfo.absoluteFilePath()); // Ajoutez le dossier à la liste si includeDirs est true
+            }
+        } else {
+            fileList.append(fileInfo.absoluteFilePath()); // Ajoutez uniquement les fichiers à la liste
+        }
     }
 
     return fileList;
 }
+
 
 QString MAIN::detectLanguageJS(QWebEnginePage* page) {
     // Code JavaScript pour détecter la langue du système
@@ -495,7 +506,7 @@ APP::~APP(){
 
 QString APP::LIST(const QString& directoryPath)
 {
-    QStringList fileList = MAIN::getListOfFilesInDirectory(directoryPath);
+    QStringList fileList = MAIN::getListOfFilesInDirectory(directoryPath, false);
 
     // Formater la liste des fichiers
     QString formattedList;
@@ -626,15 +637,20 @@ QByteArray NETWORK::Download(const QUrl Url) {
     return downloadedData;
 }
 
-bool FILES::unZip(const QString &file, const QString &dest) {
+bool FILES::unZip(const QString &file, const QString &dest, std::function<void()> cleaningCallback) {
+
+    // Créer un dossier temporaire pour l'extraction
+    QString tempDirPath = QDir::tempPath() + "/tempExtractionFolder_" + QUuid::createUuid().toString();
+    QDir().mkdir(tempDirPath);
+
 #ifdef Q_OS_WIN
     QString program = "7z.exe";
     QStringList arguments;
-    arguments << "x" << file << "-o" + dest << "-aoa";
+    arguments << "x" << file << "-o" + tempDirPath << "-aoa";
 #elif defined(Q_OS_LINUX)
     QString program = "/usr/bin/unzip";
     QStringList arguments;
-    arguments << "-o" << file << "-d" << dest;
+    arguments << "-o" << file << "-d" << tempDirPath;
 #else
     // Gérer les autres systèmes d'exploitation
     return false;
@@ -648,5 +664,41 @@ bool FILES::unZip(const QString &file, const QString &dest) {
     qDebug() << "Standard Output:" << unzip.readAllStandardOutput();
     qDebug() << "Standard Error:" << unzip.readAllStandardError();
 
-    return (unzip.exitCode() == 0);
+    if (unzip.exitCode() != 0) {
+        return false;
+    }
+
+    // Copier les fichiers du dossier temporaire vers le dossier de destination
+    QStringList extractedFilesAndDirs = MAIN::getListOfFilesInDirectory(tempDirPath, true, true);
+    foreach (const QString &filePath, extractedFilesAndDirs) {
+        QString relativePath = QDir(tempDirPath).relativeFilePath(filePath);
+        if (QFileInfo(filePath).isDir()) {
+            QDir().mkdir(QDir(dest).absoluteFilePath(relativePath));
+        } else {
+            QFile::copy(filePath, QDir(dest).absoluteFilePath(relativePath));
+        }
+    }
+
+    // Supprimer le dossier temporaire après avoir copié les fichiers et dossiers
+    MAIN::supprimerDossier(tempDirPath);
+
+    QStringList preExtractionFilesAndDirs = MAIN::getListOfFilesInDirectory(dest, true, true);
+
+    if (cleaningCallback) {
+        cleaningCallback();
+    }
+
+    // Supprimez les fichiers et dossiers du répertoire de destination qui ne sont pas dans le zip
+    foreach (const QString& preFileOrDir, preExtractionFilesAndDirs) {
+        if (!extractedFilesAndDirs.contains(QDir(tempDirPath).absoluteFilePath(QDir(dest).relativeFilePath(preFileOrDir)))) {
+            if (QFileInfo(preFileOrDir).isDir()) {
+                QDir(preFileOrDir).removeRecursively();
+            } else {
+                QFile::remove(preFileOrDir);
+            }
+        }
+    }
+
+    return true;
 }
+

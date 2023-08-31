@@ -416,6 +416,7 @@ a.dark-theme {
 
     </style>
     <script src="jquery.js"></script>
+    <link rel="stylesheet" type="text/css" media="screen" href="panel.css">
     <script src="Olop.js"></script>
 <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
 <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
@@ -1137,9 +1138,7 @@ function tmpHTML(id, time, content){
         }
 
         function openSettings() {
-    var id = "SETTINGS_" + Math.random().toString(36).substr(2, 9);
-    openWindow("", "Paramètres", "Un instant...", 0, id);
-    $("#" + id).load("settings.html");
+            PANEL.openPanel("SETTINGS");
 }
 
         function toggleTheme(force) {
@@ -1246,9 +1245,19 @@ setTimeout(() => {
         $.get("avertissement.html", function(data) {
             showNotification(-1, "Avertissement sur Olop", data);
         });
+        // Créer l'élément overlay
+    let overlay = document.createElement('div');
+    overlay.id = 'overlay';
+    overlay.className = 'overlay';
+
+    // Ajouter l'overlay au body
+    document.body.appendChild(overlay);
+    $("#SETTINGS").load("settings.html");
         
         // Masquer le loader
-        loader.style.display = 'none';
+        loader.style.display = 'none'; 
+        $("#content").show();
+        $('#loader').hide();
     });
 
 }, 10);
@@ -1256,6 +1265,7 @@ setTimeout(() => {
   // Autres opérations...
 });
     </script>
+    <script src="panel.js"></script>
 </head>
 <body>
     <div id="sidebar" class="hidden">
@@ -1272,6 +1282,7 @@ setTimeout(() => {
         </div>
         <div id="minimizedInfo"></div>
         <button type="button" id="viewMinimized" style="display: none;" onclick="viewMinimizedWindows()">Voir</button>
+        <div id="SETTINGS" class="panel" titre="Paramètres">CONTENU</div>
         <a class="flat-button settings-link" href="#" onclick="openSettings();">&#9881; Paramètres</a>
     </div>
 

@@ -15,5 +15,7 @@
         <file>assets/pages.txt</file>
         <file>assets/images.txt</file>
         <file>assets/avertissement.html</file>
+        <file>assets/panel.css</file>
+        <file>assets/panel.js</file>
     </qresource>
 </RCC>

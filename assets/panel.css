@@ -1,0 +1,83 @@
+.panel {
+    width: 250px;
+    height: 80vh; 
+    border: 1px solid #d0d0d0;
+    background-color: #FFF;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+    font-family: Arial, sans-serif;
+    position: fixed;
+    top: 50px;
+    right: -300px;  
+    transition: right 0.5s; 
+}
+
+.panel .scroll-content {
+    overflow-y: auto;
+    max-height: calc(80vh - 30px);
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.panel-close {
+    background-color: transparent;
+    border: none;
+    border-radius: 5px;
+    scale : 1.2;
+    text-transform: uppercase;
+    transition: transform 0.3s ease;
+}
+
+.panel-close:hover {
+    transform: scale(1.4);
+}
+
+.panel .header {
+    background-color: #FFF;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.panel h2 {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 10px;
+    margin: 0; 
+}
+
+.panel-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    padding: 0;
+    margin: 0;
+    color: red;
+}
+
+.panel hr {
+    margin: 0;
+    border-color: black;
+}
+
+/* Thème sombre lorsque le body a la classe .dark-theme */
+
+body.dark-theme .panel {
+    background-color: #333; /* fond sombre */
+    border-color: #555; /* bordure un peu plus claire que le fond */
+    color: #EEE; /* texte clair */
+}
+
+body.dark-theme .panel .header {
+    background-color: #444; /* un fond légèrement plus clair pour le header */
+}
+
+body.dark-theme .panel hr {
+    border-color: #666; /* bordure légèrement plus claire pour le hr */
+}
+
+body.dark-theme .panel-close {
+    color: #FF5555; /* rouge clair pour le bouton de fermeture */
+}

@@ -342,20 +342,19 @@ bool MAIN::mkdir(QString path) {
     return true;
 }
 
-QString MAIN::lireFichier(const QString& cheminFichier) {
+QByteArray MAIN::lireFichier(const QString& cheminFichier) {
     QFile fichier(cheminFichier);
 
-    if (!fichier.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        return QString(); // Retourne une chaîne vide en cas d'erreur
+    if (!fichier.open(QIODevice::ReadOnly)) { // Note l'absence de QIODevice::Text
+        return QByteArray(); // Retourne un QByteArray vide en cas d'erreur
     }
 
-    QTextStream flux(&fichier);
-    QString contenu = flux.readAll();
-
+    QByteArray contenu = fichier.readAll();
     fichier.close();
 
     return contenu;
 }
+
 
 bool MAIN::supprimerDossier(const QString& cheminDossier) {
     QDir dossier(cheminDossier);
@@ -562,26 +561,38 @@ int APP::HTTPSERVER(QString dir){
         qDebug() << QCoreApplication::translate("Olop", "Server failed to listen on a port.");
         return 0;
     }
-    QString URL = NULL;
+    QString URL = "";
 
-    httpServer->route("/jquery.js", [=](QUrl Url){
+    httpServer->route("/jquery.js", [=](){
         return QHttpServerResponse::fromFile(QStringLiteral(":/assets/jquery.js"));
     });
 
-    httpServer->route("/setURL/<arg>", [=](QUrl Url){
+    httpServer->route("/setURL/<arg>", [&](QUrl Url){
+        URL = Url.toDisplayString();
         return "OK";
     });
 
     httpServer->route("/<arg>", [=](QUrl Url) {
-        QString file = MAIN::lireFichier(dir+"/"+Url.toDisplayString());
-        if(file==""){
+        QByteArray fileData = MAIN::lireFichier(dir+"/"+Url.toDisplayString());
+
+        if (fileData.isEmpty()) {
             QByteArray DOWN = NETWORK::Download(Url);
-            if(DOWN =="ERR"){
-                DOWN = NETWORK::Download(QUrl(QString(URL+Url.toDisplayString())));
+            if (DOWN == "ERR") {
+                DOWN = NETWORK::Download(QUrl(QString(URL + Url.toDisplayString())));
             }
-        }else {
-            return file;
+            if (!DOWN.isEmpty()) {
+                QMimeDatabase mimeDb;
+                QMimeType type = mimeDb.mimeTypeForFile(Url.toDisplayString()); // ou utilises filePath
+                return QHttpServerResponse(type.name().toUtf8(), DOWN);
+            }
+        } else {
+            QMimeDatabase mimeDb;
+            QMimeType type = mimeDb.mimeTypeForFile(Url.toDisplayString()); // ou utilises filePath
+            return QHttpServerResponse(type.name().toUtf8(), fileData);
         }
+
+        // Gère l'erreur ou retourne une réponse par défaut si nécessaire
+        return QHttpServerResponse("text/plain", "Erreur ou contenu par défaut");
     });
 
 httpServer->route("/stop", [=]() {

@@ -31,7 +31,7 @@ public:
     static bool supprimerDossier(const QString& cheminDossier);
     static bool mkdir(QString path);
     static QStringList getListOfFilesInDirectory(const QString& directoryPath, bool includesubdir=false, bool includeDirs = false);
-    static QString lireFichier(const QString& cheminFichier);
+    static QByteArray lireFichier(const QString& cheminFichier);
     static QString detectLanguageJS(QWebEnginePage* page);
 };
 

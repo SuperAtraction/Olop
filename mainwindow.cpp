@@ -34,7 +34,7 @@ void MainWindow::resizeEvent(QResizeEvent* event)
 
     // Redimensionner le widget QWebEngine avec la fenêtre principale
     ui->Web->setGeometry(0, 0, ui->centralwidget->width(), ui->centralwidget->height());
-    ui->Web->page()->runJavaScript("ResizeEvent()");
+    ui->Web->page()->runJavaScript("MAIN.ResizeEvent()");
 }
 
 void MainWindow::on_actionQuitter_triggered()

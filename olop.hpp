@@ -22,7 +22,7 @@ public:
     static bool ecrireDansFichier(const QString& cheminFichier, const QByteArray& contenu);
     static bool ecrireDansFichier(const QString& cheminFichier, const QString& contenu);
     static bool INIT();
-    static int SERVER();
+    static int SERVER(QString ports);
     static void executeInMainThread(std::function<void()> func);
     static bool isVersionGreater(const QString& newVersion, const QString& oldVersion);
     static bool copyFile(const QString& sourceFilePath, const QString& destinationFilePath);
@@ -48,6 +48,7 @@ public:
 class NETWORK {
 public:
     static bool checkURLAccess(const QString& url);
+    static int findAvailablePort();
     static QByteArray Download(const QUrl Url);
 };
 

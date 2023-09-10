@@ -7,6 +7,18 @@ MainWindow::MainWindow(QWidget *parent, QString url) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    CustomWebEnginePage* customPage = new CustomWebEnginePage();
+    ui->Web->setPage(customPage);
+
+    connect(customPage, &CustomWebEnginePage::customJavaScriptConsoleMessage,
+            [](QWebEnginePage::JavaScriptConsoleMessageLevel level, const QString &message, int lineNumber, const QString &sourceID)
+            {
+                Q_UNUSED(level);
+                Q_UNUSED(lineNumber);
+                Q_UNUSED(sourceID);
+                qDebug().noquote() << "[CONSOLE]" << message;
+            });
+    ui->Web->setUrl(QUrl("http://localhost:"+url+"/Loading.html"));
     QFile file(":/fluent_dark.qss");
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream stream(&file);
@@ -17,8 +29,10 @@ MainWindow::MainWindow(QWidget *parent, QString url) :
     } else {
         qWarning() << "Impossible d'ouvrir le fichier QSS.";
     }
-    ui->Web->setUrl(QUrl(url));
     connect(this, &MainWindow::resizeEvent, this, &MainWindow::resizeEvent);
+    connect(ui->Web, &QWebEngineView::loadFinished, this, [=](bool ok) {
+        onLoadingHtmlFinished(ok, "http://localhost:"+url+"/");
+    });
 
     qDebug() << "Olop a été initialisé";
 }
@@ -26,6 +40,23 @@ MainWindow::MainWindow(QWidget *parent, QString url) :
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::onLoadingHtmlFinished(bool ok, const QString &url)
+{
+    if (!ok)
+        return;
+
+    QWebEngineView *view = qobject_cast<QWebEngineView *>(sender());
+    if (!view)
+        return;
+
+    QUrl currentUrl = view->url();
+    if (currentUrl.path() == "/Loading.html" && currentUrl.host() == "localhost")
+    {
+        QString jsCommand = QString("loadOlop('%1');").arg(url);
+        ui->Web->page()->runJavaScript(jsCommand);
+    }
 }
 
 void MainWindow::resizeEvent(QResizeEvent* event)

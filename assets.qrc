@@ -17,5 +17,6 @@
         <file>assets/avertissement.html</file>
         <file>assets/panel.css</file>
         <file>assets/panel.js</file>
+        <file>assets/Loading.html</file>
     </qresource>
 </RCC>

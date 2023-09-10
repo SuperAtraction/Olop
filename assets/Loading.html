@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chargement Olop</title>
+    <style>
+        body {
+            font-family: sans-serif, Arial;
+            background-color: #FFF;
+        }
+
+        #loading-container {
+    text-align: center;
+    position: relative;
+    top: -50px;  /* Ajustement pour remonter le logo */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+}
+
+#loading-container img {
+    max-width: 100%;
+    height: auto;
+    margin: 0;  /* Reset margin */
+}
+
+#loading-text {
+    margin-top: 30px;  /* Ajustement pour descendre le texte un poil */
+    font-size: 24px;
+}
+
+    </style>
+    <script src="jquery.js"></script>
+    <script>
+        function loadOlop(url){
+            console.log(url);
+            $("#loading-text").html("Finialisation...");
+            // Charger le script olo.js
+    $.getScript(url+'Olop.js', function() {
+        
+        // Préchargement du fichier index.html
+        $.get(url+'index.html', function(data) {
+
+            // Injecter le contenu HTML
+            $('body').html(data);  
+            
+            // Exécution de initFunction
+            if (typeof initFunction === "function") {
+                initFunction().then(() => {
+                    // Masquer le loader
+            $('#loading-container').fadeOut(100, function() {
+                // Supprimer les balises <style> pour éviter les interférences
+                $('style').remove();
+                // Supprimer le contenu de loading.html
+                $(this).remove();
+            });
+                });
+            }
+        }).fail(function( jqxhr, settings, exception ) {
+   console.error("Erreur lors du chargement du fichier index.html: " + exception);
+});
+    }).fail(function( jqxhr, settings, exception ) {
+   console.error("Erreur lors du chargement du script Olop.js: " + exception);
+});
+        }
+        $(document).ready(function() {
+    // Animation d'apparition pour Olop
+    $('#loading-container').hide().fadeIn(500);
+});
+
+
+    </script>
+</head>
+<body>
+    <div id="loading-container">
+        <img src="Olop.png" alt="Logo Olop">
+        <div>
+            <img src="loading.gif" alt="Chargement en cours...">
+        </div>
+        <div id="loading-text">Chargement d'Olop...</div>
+    </div>
+</body>
+</html>

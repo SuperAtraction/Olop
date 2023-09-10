@@ -11,6 +11,7 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 #include <QWebEngineScript>
+#include <QTcpServer>
 
 QString def = "Olop n'a pas été initialisé\nSi vous êtes le développeur de cette application, veuillez utiliser \"MAIN::INIT();\" au démarrage.";
 
@@ -22,6 +23,29 @@ QHttpServer MAIN::httpServer;
 MainWindow* MAIN::w;
 QString MAIN::osname = def;
 QList<QHttpServer*> APP::httpServers;
+
+QHttpServerResponse CORSHEAD(const QString &content) {
+    QHttpServerResponse response(content);
+    response.setHeader("Access-Control-Allow-Origin", "qrc:");
+    response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    return response;
+}
+
+QHttpServerResponse CORSHEAD(const char* content) {
+    return CORSHEAD(QString(content));
+}
+
+QHttpServerResponse CORSHEAD(const QByteArray &content) {
+    return CORSHEAD(QString(content));
+}
+
+QHttpServerResponse CORSHEAD(QHttpServerResponse &&response) {
+    response.setHeader("Access-Control-Allow-Origin", "http://localhost");
+    response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    response.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    return std::move(response);
+}
 
 bool MAIN::ecrireDansFichier(const QString& cheminFichier, const QByteArray& contenu) {
     QFile fichier(cheminFichier);
@@ -73,23 +97,18 @@ bool MAIN::INIT() {
     return true;
 }
 
-int MAIN::SERVER(){
-    const auto port = httpServer.listen(QHostAddress::Any);
-    if (!port) {
-        qDebug() << QCoreApplication::translate("Olop", "Server failed to listen on a port.");
-        exit(0);
-    }
-
-    httpServer.route("/index.html", []() {
+int MAIN::SERVER(QString ports){
+    int port = ports.toInt();
+httpServer.route("/index.html", []() {
 #ifdef Q_OS_LINUX
-        return MAIN::lireFichier(QStringLiteral(":/assets/index.html"))+"<script>"+MAIN::lireFichier(QStringLiteral(":/assets/linux.js"))+"</script>";
+        return CORSHEAD(MAIN::lireFichier(QStringLiteral(":/assets/index.html"))+"<script>"+MAIN::lireFichier(QStringLiteral(":/assets/linux.js"))+"</script>");
 #else
-            return QHttpServerResponse::fromFile(QStringLiteral(":/assets/index.html"));
+            return CORSHEAD(QHttpServerResponse::fromFile(QStringLiteral(":/assets/index.html")));
 #endif
     });
 
     httpServer.route("/Applist.html", [](){
-        return APP::LIST(MAIN::APP_DIR);
+        return CORSHEAD(APP::LIST(MAIN::APP_DIR));
     });
 
     httpServer.route("/Install/1/<arg>", [](const QUrl &Url){
@@ -104,7 +123,7 @@ int MAIN::SERVER(){
         delete manager;
 
         if (data.isEmpty()) {
-            return QString("Erreur, vérifiez l'URL et votre connexion internet");
+            return CORSHEAD(QString("Erreur, vérifiez l'URL et votre connexion internet"));
         } else {
             QStringList app = APP::decodeApp(data);
             int rand = QRandomGenerator::global()->bounded(0, 99999 + 1);
@@ -113,7 +132,7 @@ int MAIN::SERVER(){
 
             QString encodedRedirectUrl = QUrl(redirectUrl.toUtf8()).toEncoded();
 
-            return QString("<script type=\"text/javascript\">location.href=\"" + encodedRedirectUrl +"&port=\" + location.port;</script><noscript>Activez javascript</noscript>");
+            return CORSHEAD(QString("<script type=\"text/javascript\">location.href=\"" + encodedRedirectUrl +"&port=\" + location.port;</script><noscript>Activez javascript</noscript>"));
         }
     });
 
@@ -122,14 +141,14 @@ int MAIN::SERVER(){
         QStringList app = APP::decodeApp(MAIN::lireFichier(MAIN::O_DIR+Url.toDisplayString()+".app"));
         if(!MAIN::moveFile(MAIN::O_DIR+Url.toDisplayString()+".app", MAIN::O_DIR+"App/"+Url.toDisplayString()+".app")){
             QMessageBox::critical(MAIN::w, "Erreur", "Erreur lors de l'installation de l'application "+app[1]);
-            return "Erreur lors de l'installation de l'application "+app[1];
+            return CORSHEAD("Erreur lors de l'installation de l'application "+app[1]);
         }
         MAIN::w->ui->Web->page()->runJavaScript("showNotification(0, \"Installation d'une application\", \"L\'application " + app[1] + " est prête à être installée.<br>Elle sera installée lorsque vous la démarrerez.\");");
         MAIN::w->activateWindow();
         MAIN::w->raise();
         MAIN::w->showNormal();
 
-        return "<script>location.href=\"https://olop.rf.gd/Store/?Installed="+QUrl::toPercentEncoding(app[1])+"\";</script><noscript><a href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\">Cliquez ici</a> et activez javascript</noscript>";
+        return CORSHEAD("<script>location.href=\"https://olop.rf.gd/Store/?Installed="+QUrl::toPercentEncoding(app[1])+"\";</script><noscript><a href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\">Cliquez ici</a> et activez javascript</noscript>");
     });
 
 httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
@@ -222,7 +241,7 @@ httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
         }
     });
 
-    return QString("Chargement...");
+    return CORSHEAD(QString("Chargement..."));
 });
 
     httpServer.route("/remove/<arg>", [=](const QUrl Url){
@@ -238,27 +257,27 @@ httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
         deleteFile(app);
         supprimerDossier(app.split(".app")[0]+"/");
         page->runJavaScript("loadPage(\"home\");");
-        return "Suppression terminée.";
+        return CORSHEAD("Suppression terminée.");
     }else {
         page->runJavaScript("tmpHTML(\""+id+"\", 4000, \"La suppression de l'application "+decodedApp[1]+" a été annulée.\");");
-        return "OK";
+        return CORSHEAD("OK");
     }
 });
 
     httpServer.route("/stop/", [](){
         exit(0);
-        return "";
+        return CORSHEAD("");
     });
 
     httpServer.route("/getapp/<arg>", [](const QUrl &Url) {
-        return lireFichier(Url.toDisplayString());
+        return CORSHEAD(lireFichier(Url.toDisplayString()));
     });
 
     httpServer.route("/checkurl/200/<arg>", [](const QUrl &Url){
         /*if(NETWORK::checkURLAccess(Url.toDisplayString())){
-            return "1";
+            return CORSHEAD("1");
         }*/
-        return "0";
+        return CORSHEAD("0");
     });
 
     /*httpServer.route("/actions/goupdate/", [](){
@@ -275,35 +294,22 @@ httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
             reply->deleteLater();
             QMessageBox::critical(nullptr, "Erreur", "Une erreur est survenue durant la mise à jour");
         }
-        return "";
+        return CORSHEAD("");
     });*/
 
     httpServer.route("/query", [] (const QHttpServerRequest &request) {
-        return QString("%1/query/").arg(request.value("Host"));
+        return CORSHEAD(QString("%1/query/").arg(request.value("Host")));
     });
 
     httpServer.route("/<arg>", [] (const QUrl &url) {
-        return QHttpServerResponse::fromFile(QStringLiteral(":/assets/%1").arg(url.path()));
+        return CORSHEAD(QHttpServerResponse::fromFile(QStringLiteral(":/assets/%1").arg(url.path())));
     });
 
-    const auto sslCertificateChain = QSslCertificate::fromPath(QStringLiteral(":/assets/certificate.crt"));
-    if (sslCertificateChain.isEmpty()) {
-        qDebug() << QCoreApplication::translate("Olop", "Couldn't retrieve SSL certificate from file.");
-        return 0;
+    if (!httpServer.listen(QHostAddress::Any, port)) {
+        qDebug() << "Erreur lors du démarrage du serveur sur le port" << port;
+            return 0;
     }
-    QFile privateKeyFile(QStringLiteral(":/assets/private.key"));
-    if (!privateKeyFile.open(QIODevice::ReadOnly)) {
-        qDebug() << QCoreApplication::translate("Olop", "Couldn't open file for reading.");
-        return 0;
-    }
-    httpServer.sslSetup(sslCertificateChain.first(), QSslKey(&privateKeyFile, QSsl::Rsa));
-    privateKeyFile.close();
 
-    const auto sslPort = httpServer.listen(QHostAddress::Any);
-    if (!sslPort) {
-        return 0;
-    }
-    qDebug() << port;
     return port;
 }
 
@@ -624,6 +630,17 @@ bool NETWORK::checkURLAccess(const QString& url) {
 
     return false; // L'URL n'est pas accessible ou une erreur s'est produite
 }
+
+int NETWORK::findAvailablePort() {
+    QTcpServer server;
+    if(server.listen(QHostAddress::LocalHost, 0)) {
+        int port = server.serverPort();
+        server.close();  // Ferme le serveur et libère le port
+        return port;
+    }
+    return -1;  // retourne -1 si aucun port n'est disponible, ce qui est peu probable
+}
+
 
 QByteArray NETWORK::Download(const QUrl Url) {
     QNetworkAccessManager manager;

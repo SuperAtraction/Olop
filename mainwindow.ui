@@ -38,7 +38,7 @@
     </property>
     <property name="url" stdset="0">
      <url>
-      <string>qrc:/assets/Olop.png</string>
+      <string>qrc:/assets/Loading.html</string>
      </url>
     </property>
    </widget>

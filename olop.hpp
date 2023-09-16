@@ -50,6 +50,7 @@ public:
     static bool checkURLAccess(const QString& url);
     static int findAvailablePort();
     static QByteArray Download(const QUrl Url);
+    static QString port;
 };
 
 class FILES {

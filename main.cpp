@@ -54,29 +54,29 @@ int main(int argc, char *argv[])
         // Pour le serveur
         QObject::connect(serverProcess, &QProcess::readyReadStandardOutput, [serverProcess]() {
             QByteArray output = serverProcess->readAllStandardOutput();
-            qDebug().noquote() << "[SERVEUR]" << QString::fromUtf8(output.trimmed());
+            qDebug().noquote() << "[SERVEUR] [Info]" << QString::fromUtf8(output.trimmed());
         });
 
         QObject::connect(serverProcess, &QProcess::readyReadStandardError, [serverProcess]() {
             QByteArray errorOutput = serverProcess->readAllStandardError();
-            qWarning().noquote() << "[SERVEUR]" << QString::fromUtf8(errorOutput.trimmed());
+            qWarning().noquote() << "[SERVEUR] [ERREUR]" << QString::fromUtf8(errorOutput.trimmed());
         });
 
         // Pour l'UI
         QObject::connect(uiProcess, &QProcess::readyReadStandardOutput, [uiProcess]() {
             QByteArray output = uiProcess->readAllStandardOutput();
-            qDebug().noquote() << "[UI]" << QString::fromUtf8(output.trimmed());
+            qDebug().noquote() << "[UI] [Info]" << QString::fromUtf8(output.trimmed());
         });
 
         QObject::connect(uiProcess, &QProcess::readyReadStandardError, [uiProcess]() {
             QByteArray errorOutput = uiProcess->readAllStandardError();
-            qWarning().noquote() << "[UI]" << QString::fromUtf8(errorOutput.trimmed());
+            qWarning().noquote() << "[UI] [ERREUR]" << QString::fromUtf8(errorOutput.trimmed());
         });
 
         // Surveillance du serveur
         QObject::connect(serverProcess, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), [=](int exitCode, QProcess::ExitStatus) {
             if (!*serverIntentionallyStopped) {
-                qDebug() << "Le processus serveur a planté. Redémarrage...";
+                qDebug() << "[ERREUR] Le processus serveur a planté. Redémarrage...";
                 serverProcess->start(appPath, serverArgs);
             }
         });
@@ -87,10 +87,10 @@ int main(int argc, char *argv[])
                 *serverIntentionallyStopped = true;
                 serverProcess->terminate();
                 serverProcess->waitForFinished();
-                qDebug() << "Olop est arrêté. À bientôt !";
+                qDebug() << "[Info] Olop est arrêté. À bientôt !";
                 qApp->exit(0);
             } else {
-                qDebug() << "Le processus d'interface utilisateur a planté. Redémarrage...";
+                qDebug() << "[ERREUR] Le processus d'interface utilisateur a planté. Redémarrage...";
                 uiProcess->start(appPath, uiArgs);
             }
         });
@@ -101,10 +101,12 @@ int main(int argc, char *argv[])
     } else {
         if (parser.isSet(serverOption)) {
             QString port = parser.value(serverOption);
+            NETWORK::port=port;
             qDebug() << "Lancement d'Olop sur le port "+port;
             MAIN::SERVER(port);
         }else if(parser.isSet(uiOption)){
             QString port = parser.value(uiOption);
+            NETWORK::port=port;
             MAIN::w = new MainWindow(nullptr, port);
             qDebug() << port;
             MAIN::w->show();

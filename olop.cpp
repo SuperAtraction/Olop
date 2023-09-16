@@ -23,6 +23,7 @@ QHttpServer MAIN::httpServer;
 MainWindow* MAIN::w;
 QString MAIN::osname = def;
 QList<QHttpServer*> APP::httpServers;
+QString NETWORK::port = "";
 
 QHttpServerResponse CORSHEAD(const QString &content) {
     QHttpServerResponse response(content);
@@ -45,6 +46,16 @@ QHttpServerResponse CORSHEAD(QHttpServerResponse &&response) {
     response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     response.setHeader("Access-Control-Allow-Headers", "Content-Type");
     return std::move(response);
+}
+
+void sendJavaScriptToUi(const QString& script) {
+    QLocalSocket socket;
+    socket.connectToServer("Olop-threads-"+NETWORK::port);
+    if(socket.waitForConnected()) {
+        socket.write(("1" + script).toUtf8()); // ajoutez "1" devant le script
+        socket.flush();
+        socket.waitForBytesWritten();
+    }
 }
 
 bool MAIN::ecrireDansFichier(const QString& cheminFichier, const QByteArray& contenu) {
@@ -143,16 +154,11 @@ httpServer.route("/index.html", []() {
             QMessageBox::critical(MAIN::w, "Erreur", "Erreur lors de l'installation de l'application "+app[1]);
             return CORSHEAD("Erreur lors de l'installation de l'application "+app[1]);
         }
-        MAIN::w->ui->Web->page()->runJavaScript("showNotification(0, \"Installation d'une application\", \"L\'application " + app[1] + " est prête à être installée.<br>Elle sera installée lorsque vous la démarrerez.\");");
-        MAIN::w->activateWindow();
-        MAIN::w->raise();
-        MAIN::w->showNormal();
-
+        sendJavaScriptToUi("showNotification(0, \"Installation d'une application\", \"L\'application " + app[1] + " est prête à être installée.<br>Elle sera installée lorsque vous la démarrerez.\");");
         return CORSHEAD("<script>location.href=\"https://olop.rf.gd/Store/?Installed="+QUrl::toPercentEncoding(app[1])+"\";</script><noscript><a href=\"https://olop.rf.gd/Store/?Installed="+app[1]+"\">Cliquez ici</a> et activez javascript</noscript>");
     });
 
 httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
-    QWebEnginePage *page = w->ui->Web->page();
     auto args = Url.toDisplayString().split("-OLOP-");
     auto appfile = args[0];
     auto id = args[1];
@@ -172,7 +178,7 @@ httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
             QString points = QString(".").repeated(counter++);
             QString jsCode = QString("$(\"#%1\").html(\"" + *message + "%2\");")
                                  .arg(id).arg(points);
-            page->runJavaScript(jsCode);
+            sendJavaScriptToUi(jsCode);
         });
         timer->start();
     };
@@ -191,17 +197,16 @@ httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
         primaryTimer->deleteLater();  // puis, demandez la suppression
         int port = app->HTTPSERVER(appdir);
         qDebug() << port;
-        page->runJavaScript("findWindowAndConvertToIframe(\"" + id + "\", \"http://localhost:" + QString::number(port) + "/index.html\");");
+        sendJavaScriptToUi("findWindowAndConvertToIframe(\"" + id + "\", \"http://localhost:" + QString::number(port) + "/index.html\");");
     };
 
     QTimer::singleShot(10, [=]() {
         if (!QDir(appdir).exists()) {
+            MAIN::mkdir(appdir);
             MAIN::ecrireDansFichier(QDir::tempPath() + "/tmp.zip", NETWORK::Download(QUrl(packageurl)));
             FILES::unZip(QDir::tempPath() + "/tmp.zip", appdir);
 
-            primaryTimer->stop();
-            int port = APP::HTTPSERVER(appdir);
-            page->runJavaScript("findWindowAndConvertToIframe(\"" + id + "\", \"http://localhost:" + QString::number(port) + "/index.html\");");
+            launch();
         } else {
             QString newappfile = NETWORK::Download(QUrl(appurl));
             qDebug() << appurl;
@@ -245,7 +250,7 @@ httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
 });
 
     httpServer.route("/remove/<arg>", [=](const QUrl Url){
-    QWebEnginePage *page = w->ui->Web->page();
+
     auto args = Url.toDisplayString().split("-OLOP-");
     auto app = args[0];
     auto id = args[1];
@@ -253,13 +258,13 @@ httpServer.route("/Launch/1/<arg>", [=](const QUrl &Url) {
     qDebug() << app;
     auto réponse = QMessageBox::question(w, "Confirmation", "Êtes-vous sûr de vouloir désinstaller "+decodedApp[1]+" ?", QMessageBox::Yes | QMessageBox::No);
     if(réponse == QMessageBox::Yes){
-        page->runJavaScript("$(\"#"+id+"\").html(\"Suppression...\");");
+        sendJavaScriptToUi("$(\"#"+id+"\").html(\"Suppression...\");");
         deleteFile(app);
         supprimerDossier(app.split(".app")[0]+"/");
-        page->runJavaScript("loadPage(\"home\");");
+        sendJavaScriptToUi("setTimeout(() => {loadPage(\"home\");}, 500);");
         return CORSHEAD("Suppression terminée.");
     }else {
-        page->runJavaScript("tmpHTML(\""+id+"\", 4000, \"La suppression de l'application "+decodedApp[1]+" a été annulée.\");");
+        sendJavaScriptToUi("tmpHTML(\""+id+"\", 4000, \"La suppression de l'application "+decodedApp[1]+" a été annulée.\");");
         return CORSHEAD("OK");
     }
 });
@@ -459,46 +464,6 @@ QStringList MAIN::getListOfFilesInDirectory(const QString& directoryPath, bool i
     }
 
     return fileList;
-}
-
-
-QString MAIN::detectLanguageJS(QWebEnginePage* page) {
-    // Code JavaScript pour détecter la langue du système
-    QString jsCode = R"(
-        function detectLanguage() {
-            var userLang = navigator.language || navigator.userLanguage;
-            return userLang;
-        }
-        detectLanguage();
-    )";
-
-    // Évaluer le script JavaScript de manière asynchrone sur l'objet QWebEnginePage (page).
-    page->runJavaScript(jsCode, [page](const QVariant &result){
-        if (result.isValid()) {
-            QString langue = result.toString();
-            // Faites quelque chose avec la langue détectée ici
-            // Obtenir la langue détectée en utilisant JavaScript
-
-            // Construire le chemin du script en fonction de la langue détectée
-            QString scriptPath = "lang_" + langue + ".js"; // Par exemple, si detectedLang est "fr", scriptPath sera "lang_fr.js".
-
-            // Charger le script correspondant
-            if (!scriptPath.isEmpty()) {
-                QString scriptContent = MAIN::lireFichier(scriptPath); // Utilisez votre fonction "lirefichier" pour obtenir le contenu du script.
-                if (!scriptContent.isEmpty()) {
-                    page->runJavaScript(scriptContent); // Exécutez le contenu du script.
-                } else {
-                    qWarning() << "Impossible de lire le fichier de script : " << scriptPath;
-                }
-            }
-        } else {
-            // Gérer l'erreur ici si nécessaire
-            qDebug() << "Erreur lors de la détection de la langue";
-        }
-    });
-
-    // Retourner une chaîne vide car le résultat ne sera pas immédiatement disponible
-    return QString();
 }
 
 APP::~APP(){

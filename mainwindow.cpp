@@ -33,12 +33,15 @@ MainWindow::MainWindow(QWidget *parent, QString url) :
     connect(ui->Web, &QWebEngineView::loadFinished, this, [=](bool ok) {
         onLoadingHtmlFinished(ok, "http://localhost:"+url+"/");
     });
+    // Initialisation de UiInstance
+    uiInstance = new Ui::UiInstance(ui->Web->page(), url);
 
     qDebug() << "Olop a été initialisé";
 }
 
 MainWindow::~MainWindow()
 {
+    delete uiInstance;  // Ajoutez cette ligne
     delete ui;
 }
 

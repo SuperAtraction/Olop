@@ -837,6 +837,12 @@ setTimeout(() => {
         $.get("avertissement.html", function(data) {
             showNotification(-1, "Avertissement sur Olop", data);
         });
+        setInterval(() => {
+            if(notificationCount<0){
+                notificationCount=0;
+                $("#notificationBar").fadeOut("slow");
+            }
+        }, 5000);
         // Créer l'élément overlay
     let overlay = document.createElement('div');
     overlay.id = 'overlay';

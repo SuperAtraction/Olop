@@ -6,9 +6,39 @@
 
 #define Version "alpha-1.2"
 
+void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
+{
+    switch (type) {
+    case QtDebugMsg:
+        fprintf(stderr, "[INFO] %s\n", msg.toStdString().c_str());
+        break;
+    case QtWarningMsg:
+        fprintf(stderr, "[ERREUR] %s\n", msg.toStdString().c_str());
+        break;
+    case QtCriticalMsg:
+        fprintf(stderr, "[CRITIQUE] %s\n", msg.toStdString().c_str());
+        break;
+    case QtFatalMsg:
+        fprintf(stderr, "[FATAL] %s\n", msg.toStdString().c_str());
+        abort();  // arrête le programme
+    case QtInfoMsg:
+        fprintf(stderr, "[INFO] %s\n", msg.toStdString().c_str());
+        break;
+    }
+}
+
+void handleProcessOutput(const QByteArray &output, const QString &prefix) {
+    QString logMsg = QString(output).trimmed();
+    if (logMsg.startsWith("[INFO]"))
+        qDebug().noquote() << prefix << logMsg.mid(6).trimmed();
+    else if (logMsg.startsWith("[ERREUR]"))
+        qWarning().noquote() << prefix << logMsg.mid(8).trimmed();
+}
+
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    qInstallMessageHandler(customMessageHandler);  // Installe le gestionnaire
     QApplication::setApplicationName("Olop");
     QApplication::setApplicationVersion(Version);
     QCommandLineParser parser;
@@ -52,31 +82,31 @@ int main(int argc, char *argv[])
         uiArgs << "--ui" << port;
 
         // Pour le serveur
-        QObject::connect(serverProcess, &QProcess::readyReadStandardOutput, [serverProcess]() {
+        QObject::connect(serverProcess, &QProcess::readyReadStandardOutput, [=]() {
             QByteArray output = serverProcess->readAllStandardOutput();
-            qDebug().noquote() << "[SERVEUR] [Info]" << QString::fromUtf8(output.trimmed());
+            handleProcessOutput(output, "[SERVEUR]");
         });
 
-        QObject::connect(serverProcess, &QProcess::readyReadStandardError, [serverProcess]() {
+        QObject::connect(serverProcess, &QProcess::readyReadStandardError, [=]() {
             QByteArray errorOutput = serverProcess->readAllStandardError();
-            qWarning().noquote() << "[SERVEUR] [ERREUR]" << QString::fromUtf8(errorOutput.trimmed());
+            handleProcessOutput(errorOutput, "[SERVEUR]");
         });
 
         // Pour l'UI
-        QObject::connect(uiProcess, &QProcess::readyReadStandardOutput, [uiProcess]() {
+        QObject::connect(uiProcess, &QProcess::readyReadStandardOutput, [=]() {
             QByteArray output = uiProcess->readAllStandardOutput();
-            qDebug().noquote() << "[UI] [Info]" << QString::fromUtf8(output.trimmed());
+            handleProcessOutput(output, "[UI]");
         });
 
-        QObject::connect(uiProcess, &QProcess::readyReadStandardError, [uiProcess]() {
+        QObject::connect(uiProcess, &QProcess::readyReadStandardError, [=]() {
             QByteArray errorOutput = uiProcess->readAllStandardError();
-            qWarning().noquote() << "[UI] [ERREUR]" << QString::fromUtf8(errorOutput.trimmed());
+            handleProcessOutput(errorOutput, "[UI]");
         });
 
         // Surveillance du serveur
         QObject::connect(serverProcess, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), [=](int exitCode, QProcess::ExitStatus) {
             if (!*serverIntentionallyStopped) {
-                qDebug() << "[ERREUR] Le processus serveur a planté. Redémarrage...";
+                qWarning() << "Le processus serveur a planté. Redémarrage...";
                 serverProcess->start(appPath, serverArgs);
             }
         });
@@ -87,10 +117,10 @@ int main(int argc, char *argv[])
                 *serverIntentionallyStopped = true;
                 serverProcess->terminate();
                 serverProcess->waitForFinished();
-                qDebug() << "[Info] Olop est arrêté. À bientôt !";
+                qDebug() << "Olop est arrêté. À bientôt !";
                 qApp->exit(0);
             } else {
-                qDebug() << "[ERREUR] Le processus d'interface utilisateur a planté. Redémarrage...";
+                qWarning() << "Le processus d'interface utilisateur a planté. Redémarrage...";
                 uiProcess->start(appPath, uiArgs);
             }
         });

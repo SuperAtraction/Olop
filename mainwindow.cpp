@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "olop.hpp"
+#include <QDesktopServices>
 
 MainWindow::MainWindow(QWidget *parent, QString url) :
     QMainWindow(parent),
@@ -33,6 +34,10 @@ MainWindow::MainWindow(QWidget *parent, QString url) :
     connect(ui->Web, &QWebEngineView::loadFinished, this, [=](bool ok) {
         onLoadingHtmlFinished(ok, "http://localhost:"+url+"/");
     });
+    connect(static_cast<CustomWebEnginePage*>(ui->Web->page()), &CustomWebEnginePage::urlRequested, this,
+            [=](const QUrl& url) {
+                QDesktopServices::openUrl(url);
+            });
     // Initialisation de UiInstance
     uiInstance = new Ui::UiInstance(ui->Web->page(), url);
 

@@ -353,7 +353,8 @@ function createWindowElement(icon, title, content, isnotif, id, useIframe) {
     windowElement.ready(function() {
         windowElement.draggable({
             handle: ".window-title-bar",
-            containment: "window"
+            containment: "window",
+    iframeFix: true
         });
 
         updateMinSize(windowElement, useIframe);

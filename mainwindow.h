@@ -7,6 +7,8 @@
 #include <QtCore>
 #include <QFile>
 #include <QLocalServer>
+#include <QWebEngineProfile>
+#include <QDesktopServices>
 
 namespace Ui {
 class UiInstance : public QObject {
@@ -65,12 +67,26 @@ public:
     CustomWebEnginePage(QObject* parent = nullptr) : QWebEnginePage(parent) {}
 
 signals:
+    void requestCreateWindow(QWebEnginePage::WebWindowType type);  // Ajoutez ce signal
     void customJavaScriptConsoleMessage(QWebEnginePage::JavaScriptConsoleMessageLevel level, const QString &message, int lineNumber, const QString &sourceID);
+    void urlRequested(const QUrl& url);
 
 protected:
     virtual void javaScriptConsoleMessage(QWebEnginePage::JavaScriptConsoleMessageLevel level, const QString &message, int lineNumber, const QString &sourceID) override
     {
         emit customJavaScriptConsoleMessage(level, message, lineNumber, sourceID);
+    }
+
+    virtual QWebEnginePage* createWindow(WebWindowType type) override {
+        if (type == QWebEnginePage::WebBrowserTab || type == QWebEnginePage::WebBrowserWindow) {
+            CustomWebEnginePage* newPage = new CustomWebEnginePage(this);
+            connect(newPage, &QWebEnginePage::urlChanged, this, [this, newPage](const QUrl& url) {
+                emit urlRequested(url);
+                newPage->deleteLater();
+            });
+            return newPage;
+        }
+        return nullptr;
     }
 };
 

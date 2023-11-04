@@ -14,10 +14,25 @@ MainWindow::MainWindow(QWidget *parent, QString url) :
     connect(customPage, &CustomWebEnginePage::customJavaScriptConsoleMessage,
             [](QWebEnginePage::JavaScriptConsoleMessageLevel level, const QString &message, int lineNumber, const QString &sourceID)
             {
-                Q_UNUSED(level);
-                Q_UNUSED(lineNumber);
-                Q_UNUSED(sourceID);
-                qDebug().noquote() << "[CONSOLE]" << message;
+                QString formattedSourceInfo;
+                if(sourceID.isEmpty()) {
+                    formattedSourceInfo = QString::number(lineNumber) + ":";
+                } else {
+                    formattedSourceInfo = QFileInfo(sourceID).fileName() + ":" + QString::number(lineNumber);
+                }
+
+                switch (level) {
+                case QWebEnginePage::InfoMessageLevel:
+                    qDebug().noquote() << "[CONSOLE]" << formattedSourceInfo << message;
+                    break;
+                case QWebEnginePage::WarningMessageLevel:
+                case QWebEnginePage::ErrorMessageLevel:
+                    qWarning().noquote() << "[CONSOLE]" << formattedSourceInfo << message;
+                    break;
+                default:
+                    qDebug().noquote() << "[CONSOLE]" << message;
+                    break;
+                }
             });
     ui->Web->setUrl(QUrl("http://localhost:"+url+"/Loading.html"));
     QFile file(":/fluent_dark.qss");

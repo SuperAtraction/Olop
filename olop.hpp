@@ -18,10 +18,11 @@ public:
     static QHttpServer httpServer;
     static MainWindow* w;
     static QString osname;
+    static int mode;
 
     static bool ecrireDansFichier(const QString& cheminFichier, const QByteArray& contenu);
     static bool ecrireDansFichier(const QString& cheminFichier, const QString& contenu);
-    static bool INIT();
+    static bool INIT(int mode=0);
     static int SERVER(QString ports);
     static void executeInMainThread(std::function<void()> func);
     static bool isVersionGreater(const QString& newVersion, const QString& oldVersion);
@@ -33,6 +34,8 @@ public:
     static QStringList getListOfFilesInDirectory(const QString& directoryPath, bool includesubdir=false, bool includeDirs = false);
     static QByteArray lireFichier(const QString& cheminFichier);
     static QString detectLanguageJS(QWebEnginePage* page);
+    static bool Exit(int code);
+    static bool ReportCrash(int exitcode, QString log);
 };
 
 class APP {

@@ -5,24 +5,32 @@
 #include "qapplication.h"
 
 #define Version "alpha-1.2"
+int mode = 1;
 
 void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
 {
+    QString timestamp;
+    if (mode == 1) {
+        timestamp = "["+QDateTime::currentDateTime().toString("dd/MM/yy hh:mm:ss.zzz")+"]";
+    } else {
+        timestamp = "";  // Laisser le timestamp vide si mode n'est pas égal à 1
+    }
+
     switch (type) {
     case QtDebugMsg:
-        fprintf(stderr, "[INFO] %s\n", msg.toStdString().c_str());
+        fprintf(stderr, "%s[INFO] %s\n", timestamp.toStdString().c_str(), msg.toStdString().c_str());
         break;
     case QtWarningMsg:
-        fprintf(stderr, "[ERREUR] %s\n", msg.toStdString().c_str());
+        fprintf(stderr, "%s[ERREUR] %s\n", timestamp.toStdString().c_str(), msg.toStdString().c_str());
         break;
     case QtCriticalMsg:
-        fprintf(stderr, "[CRITIQUE] %s\n", msg.toStdString().c_str());
+        fprintf(stderr, "%s[CRITIQUE] %s\n", timestamp.toStdString().c_str(), msg.toStdString().c_str());
         break;
     case QtFatalMsg:
-        fprintf(stderr, "[FATAL] %s\n", msg.toStdString().c_str());
+        fprintf(stderr, "%s[FATAL] %s\n", timestamp.toStdString().c_str(), msg.toStdString().c_str());
         abort();  // arrête le programme
     case QtInfoMsg:
-        fprintf(stderr, "[INFO] %s\n", msg.toStdString().c_str());
+        fprintf(stderr, "%s[INFO] %s\n", timestamp.toStdString().c_str(), msg.toStdString().c_str());
         break;
     }
 }
@@ -42,12 +50,6 @@ int main(int argc, char *argv[])
     QApplication::setApplicationName("Olop");
     QApplication::setApplicationVersion(Version);
     QCommandLineParser parser;
-    if(!MAIN::INIT()){
-        QMessageBox::critical(nullptr, "Olop - Erreur critique", "Erreur critique d'init !");
-        qDebug() << "Erreur critique d'init !";
-        exit(-1);
-    }
-
     parser.setApplicationDescription("Olop est un logiciel codé en HTML5/C++");
     parser.addHelpOption();
     parser.addVersionOption();
@@ -62,13 +64,15 @@ int main(int argc, char *argv[])
 
     if (QCoreApplication::arguments().size() == 1) {
         qDebug() << "Démarrage d'Olop...";
+        MAIN::INIT(1);
+        mode=1;
 
         // Déclaration des variables
-        bool* serverIntentionallyStopped = new bool(false);
+        bool* IntentionnallyStop = new bool(false);
 
         // Destruction des pointeurs pour éviter des fuites de mémoire
         QObject::connect(&app, &QCoreApplication::aboutToQuit, [=]() {
-            delete serverIntentionallyStopped;
+            delete IntentionnallyStop;
         });
 
         // Système de crash report
@@ -105,16 +109,18 @@ int main(int argc, char *argv[])
 
         // Surveillance du serveur
         QObject::connect(serverProcess, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), [=](int exitCode, QProcess::ExitStatus) {
-            if (!*serverIntentionallyStopped) {
+            if (!*IntentionnallyStop && exitCode != 0) {
                 qWarning() << "Le processus serveur a planté. Redémarrage...";
                 serverProcess->start(appPath, serverArgs);
+            }else if(exitCode == 0){
+
             }
         });
 
         // Surveillance de l'UI
         QObject::connect(uiProcess, static_cast<void(QProcess::*)(int, QProcess::ExitStatus)>(&QProcess::finished), [=](int exitCode, QProcess::ExitStatus) {
             if (exitCode == 0) {
-                *serverIntentionallyStopped = true;
+                *IntentionnallyStop = true;
                 serverProcess->terminate();
                 serverProcess->waitForFinished();
                 qDebug() << "Olop est arrêté. À bientôt !";
@@ -130,11 +136,15 @@ int main(int argc, char *argv[])
         uiProcess->start(appPath, uiArgs);
     } else {
         if (parser.isSet(serverOption)) {
+            MAIN::INIT(2);
+            mode=2;
             QString port = parser.value(serverOption);
             NETWORK::port=port;
             qDebug() << "Lancement d'Olop sur le port "+port;
             MAIN::SERVER(port);
         }else if(parser.isSet(uiOption)){
+            MAIN::INIT(3);
+            mode=3;
             QString port = parser.value(uiOption);
             NETWORK::port=port;
             MAIN::w = new MainWindow(nullptr, port);

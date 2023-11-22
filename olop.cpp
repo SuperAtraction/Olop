@@ -24,6 +24,7 @@ MainWindow* MAIN::w;
 QString MAIN::osname = def;
 QList<QHttpServer*> APP::httpServers;
 QString NETWORK::port = "";
+int MAIN::mode = 0;
 
 QHttpServerResponse CORSHEAD(const QString &content) {
     QHttpServerResponse response(content);
@@ -86,7 +87,14 @@ bool MAIN::ecrireDansFichier(const QString& cheminFichier, const QString& conten
 }
 
 
-bool MAIN::INIT() {
+bool MAIN::INIT(int mode) {
+    MAIN::mode=mode;
+    if(MAIN::mode==0){
+        QMessageBox::critical(nullptr, "Olop - Erreur critique", "<h2 style=\"font-size:15px;\">Houston, we have a problem</h2>Olop n'arrive pas à déterminer le mode de démmarrage.<br><i><b>Essayer de mettre à jour / de réinstaller Olop</b></i>");
+        MAIN::Exit(-1);
+    }else {
+        qDebug() << "Olop est en mode "+QString::number(mode);
+    }
     if (!MAIN::mkdir(O_DIR)) {
         return false;
     }
@@ -464,6 +472,25 @@ QStringList MAIN::getListOfFilesInDirectory(const QString& directoryPath, bool i
     }
 
     return fileList;
+}
+
+bool MAIN::Exit(int code) {
+    if(code==0){
+        qDebug() << "Olop est arrêté. À bientôt :) !";
+    }else {
+        qWarning() << "Un problème est survenu :(";
+        qWarning() << "Un crash report a du etre effectué";
+    }
+    exit(code);
+}
+
+bool MAIN::ReportCrash(int exitcode, QString log){
+    QString filename = "Crash du "+QDateTime::currentDateTime().toString("dddd dd MMMM yyyy hh:mm:ss.zzz");
+    QString filecontent = "Code de sortie: "+QString::number(exitcode)+"\nLog d'Olop:\n"+log;
+    QString filepath = MAIN::O_DIR+"Logs/";
+    QDir(filepath).mkdir(filepath);
+    MAIN::ecrireDansFichier(filepath+filename, filecontent);
+    return true;
 }
 
 APP::~APP(){

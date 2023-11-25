@@ -8,17 +8,23 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    OSSpecialClasses/SpecialActions.cpp \
+    OSSpecialClasses/SystemAppInstaller.cpp \
     Tabs/home.cpp \
     Tabs/newtab.cpp \
     Tabs/settings.cpp \
+    logger.cpp \
     main.cpp \
     mainwindow.cpp \
     olop.cpp
 
 HEADERS += \
+    OSSpecialClasses/SpecialActions.hpp \
+    OSSpecialClasses/SystemAppInstaller.hpp \
     Tabs/home.h \
     Tabs/newtab.h \
     Tabs/settings.h \
+    logger.hpp \
     mainwindow.h \
     olop.hpp
 

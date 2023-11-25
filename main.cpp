@@ -3,6 +3,7 @@
 #include "mainwindow.h"
 #include "olop.hpp"
 #include "qapplication.h"
+#include "OSSpecialClasses/SystemAppInstaller.hpp"
 
 #define Version "alpha-1.2"
 int mode = 1;
@@ -66,6 +67,7 @@ int main(int argc, char *argv[])
         qDebug() << "Démarrage d'Olop...";
         MAIN::INIT(1);
         mode=1;
+        SystemAppInstaller::installsystemapp(0, "filetea", "");
 
         // Déclaration des variables
         bool* IntentionnallyStop = new bool(false);

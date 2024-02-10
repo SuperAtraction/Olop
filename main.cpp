@@ -8,17 +8,14 @@
 #define Version "alpha-1.2"
 int mode = 1;
 
-void handleProcessOutput(const QByteArray &output, const QString &prefix, int mode) {
+void handleProcessOutput(const QByteArray &output, const QString &prefix) {
     QString logMsg = QString(output).trimmed();
     if (logMsg.startsWith("[INFO]"))
         qDebug().noquote() << prefix << logMsg.mid(6).trimmed();
     else if (logMsg.startsWith("[ERREUR]"))
         qWarning().noquote() << prefix << logMsg.mid(8).trimmed();
-
-    // Si le mode est 1, journalise également dans le fichier
-    if (mode == 1) {
-        Logger::logMessage(QtInfoMsg, QMessageLogContext(), logMsg);
-    }
+    else
+        qDebug().noquote() << prefix << logMsg.trimmed();
 }
 
 int main(int argc, char *argv[])
@@ -27,6 +24,7 @@ int main(int argc, char *argv[])
 
     QApplication::setApplicationName("Olop");
     QApplication::setApplicationVersion(Version);
+    qInstallMessageHandler(Logger::logMessage);
     QCommandLineParser parser;
     parser.setApplicationDescription("Olop est un logiciel codé en HTML5/C++");
     parser.addHelpOption();
@@ -43,12 +41,7 @@ int main(int argc, char *argv[])
         Logger::setupLogging("lastest.log", 1);
         MAIN::INIT(1);
         mode = 1;
-    } else {
-        Logger::setupLogging("lastest.log", 0);
     }
-
-    // Installe le gestionnaire de messages
-    qInstallMessageHandler(Logger::logMessage);
 
     if (QCoreApplication::arguments().size() == 1) {
         // Test SystemAppInstaller::installsystemapp(0, "", "");
@@ -74,23 +67,23 @@ int main(int argc, char *argv[])
         // Pour le serveur
         QObject::connect(serverProcess, &QProcess::readyReadStandardOutput, [=]() {
             QByteArray output = serverProcess->readAllStandardOutput();
-            handleProcessOutput(output, "[SERVEUR]", mode); // Passer le mode
+            handleProcessOutput(output, "[SERVEUR]");
         });
 
         QObject::connect(serverProcess, &QProcess::readyReadStandardError, [=]() {
             QByteArray errorOutput = serverProcess->readAllStandardError();
-            handleProcessOutput(errorOutput, "[SERVEUR]", mode); // Passer le mode
+            handleProcessOutput(errorOutput, "[SERVEUR]");
         });
 
         // Pour l'UI
         QObject::connect(uiProcess, &QProcess::readyReadStandardOutput, [=]() {
             QByteArray output = uiProcess->readAllStandardOutput();
-            handleProcessOutput(output, "[UI]", mode); // Passer le mode
+            handleProcessOutput(output, "[UI]");
         });
 
         QObject::connect(uiProcess, &QProcess::readyReadStandardError, [=]() {
             QByteArray errorOutput = uiProcess->readAllStandardError();
-            handleProcessOutput(errorOutput, "[UI]", mode); // Passer le mode
+            handleProcessOutput(errorOutput, "[UI]");
         });
 
         // Surveillance du serveur

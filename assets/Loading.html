@@ -7,80 +7,92 @@
     <style>
         body {
             font-family: sans-serif, Arial;
-            background-color: #FFF;
+            background-color: #1b1d1f;
+            overflow: hidden; /* Masquer les barres de défilement par défaut */
+        }
+
+        .scrollbar-visible {
+            overflow: auto; /* Afficher les barres de défilement */
         }
 
         #loading-container {
-    text-align: center;
-    position: relative;
-    top: -50px;  /* Ajustement pour remonter le logo */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-}
+            text-align: center;
+            position: relative;
+            top: -50px;  /* Ajustement pour remonter le logo */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
 
-#loading-container img {
-    max-width: 100%;
-    height: auto;
-    margin: 0;  /* Reset margin */
-}
+        #loading-container img {
+            max-width: 200px; /* Taille légèrement plus grande pour le logo */
+            height: auto;
+            margin: 0;  /* Reset margin */
+        }
 
-#loading-text {
-    margin-top: 30px;  /* Ajustement pour descendre le texte un poil */
-    font-size: 24px;
-}
-
+        #loading-gif {
+            max-width: 150px; /* Taille légèrement plus grande pour le GIF de chargement */
+            max-height: 150px;
+            margin-top: 10px; /* Ajouter un espace au-dessus du GIF */
+        }
     </style>
     <script src="jquery.js"></script>
     <script>
+        function hideScrollbar() {
+            document.body.classList.remove('scrollbar-visible');
+        }
+
+        function showScrollbar() {
+            document.body.classList.add('scrollbar-visible');
+        }
+
         function loadOlop(url){
             console.log(url);
             $("#loading-text").html("Finialisation...");
+            // Masquer les barres de défilement pendant le chargement
+            hideScrollbar();
             // Charger le script olo.js
-    $.getScript(url+'Olop.js', function() {
-        
-        // Préchargement du fichier index.html
-        $.get(url+'index.html', function(data) {
-
-            // Injecter le contenu HTML
-            $('body').html(data);  
-            
-            // Exécution de initFunction
-            if (typeof initFunction === "function") {
-                initFunction().then(() => {
-                    // Masquer le loader
-            $('#loading-container').fadeOut(100, function() {
-                // Supprimer les balises <style> pour éviter les interférences
-                $('style').remove();
-                // Supprimer le contenu de loading.html
-                $(this).remove();
-            });
+            $.getScript(url+'Olop.js', function() {
+                // Préchargement du fichier index.html
+                $.get(url+'index.html', function(data) {
+                    // Injecter le contenu HTML
+                    $('body').html(data);  
+                    // Exécution de initFunction
+                    if (typeof initFunction === "function") {
+                        initFunction().then(() => {
+                            // Afficher les barres de défilement à la fin du chargement
+                            showScrollbar();
+                            // Masquer le loader
+                            $('#loading-container').fadeOut(100, function() {
+                                // Supprimer les balises <style> pour éviter les interférences
+                                $('style').remove();
+                                // Supprimer le contenu de loading.html
+                                $(this).remove();
+                            });
+                        });
+                    }
+                }).fail(function( jqxhr, settings, exception ) {
+                    console.error("Erreur lors du chargement du fichier index.html: " + exception);
                 });
-            }
-        }).fail(function( jqxhr, settings, exception ) {
-   console.error("Erreur lors du chargement du fichier index.html: " + exception);
-});
-    }).fail(function( jqxhr, settings, exception ) {
-   console.error("Erreur lors du chargement du script Olop.js: " + exception);
-});
+            }).fail(function( jqxhr, settings, exception ) {
+                console.error("Erreur lors du chargement du script Olop.js: " + exception);
+            });
         }
+
         $(document).ready(function() {
-    // Animation d'apparition pour Olop
-    $('#loading-container').hide().fadeIn(500);
-});
-
-
+            // Animation d'apparition pour Olop
+            $('#loading-container').hide().fadeIn(500);
+        });
     </script>
 </head>
 <body>
     <div id="loading-container">
         <img src="Olop.png" alt="Logo Olop">
         <div>
-            <img src="loading.gif" alt="Chargement en cours...">
+            <img id="loading-gif" src="loading.gif" alt="-Chargement-">
         </div>
-        <div id="loading-text">Chargement d'Olop...</div>
     </div>
 </body>
 </html>

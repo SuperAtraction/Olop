@@ -1,12 +1,15 @@
 #ifndef LOGGER_HPP
 #define LOGGER_HPP
 
-#include "olop.hpp"
+#include <QtCore>
+#include <iostream>
 
 class Logger
 {
 public:
-    Logger(MAIN nmain);
+    static void setupLogging(const QString &fileName, int mode);
+    static void logMessage(QtMsgType type, const QMessageLogContext &context, const QString &msg);
+    static int modev;
 };
 
 #endif // LOGGER_HPP

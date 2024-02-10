@@ -47,7 +47,7 @@ MainWindow::MainWindow(QWidget *parent, QString url) :
     }
     connect(this, &MainWindow::resizeEvent, this, &MainWindow::resizeEvent);
     connect(ui->Web, &QWebEngineView::loadFinished, this, [=](bool ok) {
-        onLoadingHtmlFinished(ok, "http://localhost:"+url+"/");
+        //onLoadingHtmlFinished(ok, "http://localhost:"+url+"/");
     });
     connect(static_cast<CustomWebEnginePage*>(ui->Web->page()), &CustomWebEnginePage::urlRequested, this,
             [=](const QUrl& url) {

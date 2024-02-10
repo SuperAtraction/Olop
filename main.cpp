@@ -3,51 +3,28 @@
 #include "mainwindow.h"
 #include "olop.hpp"
 #include "qapplication.h"
-#include "OSSpecialClasses/SystemAppInstaller.hpp"
+#include "logger.hpp"
 
 #define Version "alpha-1.2"
 int mode = 1;
 
-void customMessageHandler(QtMsgType type, const QMessageLogContext &context, const QString &msg)
-{
-    QString timestamp;
-    if (mode == 1) {
-        timestamp = "["+QDateTime::currentDateTime().toString("dd/MM/yy hh:mm:ss.zzz")+"]";
-    } else {
-        timestamp = "";  // Laisser le timestamp vide si mode n'est pas égal à 1
-    }
-
-    switch (type) {
-    case QtDebugMsg:
-        fprintf(stderr, "%s[INFO] %s\n", timestamp.toStdString().c_str(), msg.toStdString().c_str());
-        break;
-    case QtWarningMsg:
-        fprintf(stderr, "%s[ERREUR] %s\n", timestamp.toStdString().c_str(), msg.toStdString().c_str());
-        break;
-    case QtCriticalMsg:
-        fprintf(stderr, "%s[CRITIQUE] %s\n", timestamp.toStdString().c_str(), msg.toStdString().c_str());
-        break;
-    case QtFatalMsg:
-        fprintf(stderr, "%s[FATAL] %s\n", timestamp.toStdString().c_str(), msg.toStdString().c_str());
-        abort();  // arrête le programme
-    case QtInfoMsg:
-        fprintf(stderr, "%s[INFO] %s\n", timestamp.toStdString().c_str(), msg.toStdString().c_str());
-        break;
-    }
-}
-
-void handleProcessOutput(const QByteArray &output, const QString &prefix) {
+void handleProcessOutput(const QByteArray &output, const QString &prefix, int mode) {
     QString logMsg = QString(output).trimmed();
     if (logMsg.startsWith("[INFO]"))
         qDebug().noquote() << prefix << logMsg.mid(6).trimmed();
     else if (logMsg.startsWith("[ERREUR]"))
         qWarning().noquote() << prefix << logMsg.mid(8).trimmed();
+
+    // Si le mode est 1, journalise également dans le fichier
+    if (mode == 1) {
+        Logger::logMessage(QtInfoMsg, QMessageLogContext(), logMsg);
+    }
 }
 
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    qInstallMessageHandler(customMessageHandler);  // Installe le gestionnaire
+
     QApplication::setApplicationName("Olop");
     QApplication::setApplicationVersion(Version);
     QCommandLineParser parser;
@@ -61,13 +38,20 @@ int main(int argc, char *argv[])
     parser.process(app);
 
     QString appPath = QCoreApplication::applicationFilePath();
-
-
     if (QCoreApplication::arguments().size() == 1) {
         qDebug() << "Démarrage d'Olop...";
+        Logger::setupLogging("lastest.log", 1);
         MAIN::INIT(1);
-        mode=1;
-        SystemAppInstaller::installsystemapp(0, "filetea", "");
+        mode = 1;
+    } else {
+        Logger::setupLogging("lastest.log", 0);
+    }
+
+    // Installe le gestionnaire de messages
+    qInstallMessageHandler(Logger::logMessage);
+
+    if (QCoreApplication::arguments().size() == 1) {
+        // Test SystemAppInstaller::installsystemapp(0, "", "");
 
         // Déclaration des variables
         bool* IntentionnallyStop = new bool(false);
@@ -90,23 +74,23 @@ int main(int argc, char *argv[])
         // Pour le serveur
         QObject::connect(serverProcess, &QProcess::readyReadStandardOutput, [=]() {
             QByteArray output = serverProcess->readAllStandardOutput();
-            handleProcessOutput(output, "[SERVEUR]");
+            handleProcessOutput(output, "[SERVEUR]", mode); // Passer le mode
         });
 
         QObject::connect(serverProcess, &QProcess::readyReadStandardError, [=]() {
             QByteArray errorOutput = serverProcess->readAllStandardError();
-            handleProcessOutput(errorOutput, "[SERVEUR]");
+            handleProcessOutput(errorOutput, "[SERVEUR]", mode); // Passer le mode
         });
 
         // Pour l'UI
         QObject::connect(uiProcess, &QProcess::readyReadStandardOutput, [=]() {
             QByteArray output = uiProcess->readAllStandardOutput();
-            handleProcessOutput(output, "[UI]");
+            handleProcessOutput(output, "[UI]", mode); // Passer le mode
         });
 
         QObject::connect(uiProcess, &QProcess::readyReadStandardError, [=]() {
             QByteArray errorOutput = uiProcess->readAllStandardError();
-            handleProcessOutput(errorOutput, "[UI]");
+            handleProcessOutput(errorOutput, "[UI]", mode); // Passer le mode
         });
 
         // Surveillance du serveur

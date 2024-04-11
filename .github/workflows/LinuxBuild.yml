@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout repository
@@ -18,20 +18,28 @@ jobs:
 
     - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y wget qt5-qmake
-
-    - name: Download LinuxDeployQt
-      run: |
-        wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
-        chmod +x linuxdeployqt-continuous-x86_64.AppImage
+        sudo add-apt-repository ppa:beineri/opt-qt593-trusty -y
+        sudo apt-get update -qq
+        sudo apt-get -y install qt59base qt59declarative
+        . /opt/qt*/bin/qt*-env.sh || true
+        sudo apt-get -y install wget
 
     - name: Build AppImage
       run: |
-        ./linuxdeployqt-continuous-x86_64.AppImage build/OlopLinux -appimage
+        qmake PREFIX=/usr
+        make -j$(nproc)
+        make INSTALL_ROOT=appdir install ; find appdir/
+        wget -c "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage" 
+        chmod a+x linuxdeployqt*.AppImage
+        unset QTDIR; unset QT_PLUGIN_PATH ; unset LD_LIBRARY_PATH
+        ./linuxdeployqt*.AppImage ./appdir/usr/share/applications/*.desktop -appimage
+        find ./appdir -executable -type f -exec ldd {} \; | grep " => /usr" | cut -d " " -f 2-3 | sort | uniq
 
     - name: Upload AppImage
-      uses: actions/upload-artifact@v2
-      with:
-        name: appimage
-        path: build/OlopLinux/Olop.AppImage
+      run: |
+        wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+        bash upload.sh *.AppImage*
+
+  except:
+    - # Do not build tags that we create when we upload to GitHub Releases
+    - /^(?i:continuous)/

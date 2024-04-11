@@ -16,7 +16,7 @@
 QString def = "Olop n'a pas été initialisé\nSi vous êtes le développeur de cette application, veuillez utiliser \"MAIN::INIT();\" au démarrage.";
 
 const QString MAIN::HOME = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).value(0) + "/";
-const QString MAIN::VERSION = "alpha-1.1";
+QString MAIN::VERSION = "daily";
 const QString MAIN::O_DIR = HOME + "Olop/";
 const QString MAIN::APP_DIR = O_DIR + "/App/";
 QHttpServer MAIN::httpServer;
@@ -657,6 +657,20 @@ QByteArray NETWORK::Download(const QUrl Url) {
     return downloadedData;
 }
 
+#ifdef Q_OS_LINUX
+int NETWORK::goalpha() {
+    if(MAIN::VERSION.indexOf("daily")){
+        qDebug() << "Préparation de la migration vers des releases...";
+        MAIN::VERSION="release";
+    }else {
+        qDebug() << "Préparation de la migration vers un daily build...";
+        MAIN::VERSION="daily";
+    }
+    return 0;
+}
+#endif
+
+
 bool FILES::unZip(const QString &file, const QString &dest, std::function<void()> cleaningCallback) {
 
     // Créer un dossier temporaire pour l'extraction
@@ -722,3 +736,30 @@ bool FILES::unZip(const QString &file, const QString &dest, std::function<void()
     return true;
 }
 
+QString FILES::getcurrentdir() {
+    return QDir::currentPath();;
+}
+
+int FILES::checkpermission(QString path){
+    QFileInfo fileInfo(path);
+
+    if(fileInfo.exists() && fileInfo.isDir())
+    {
+        if(fileInfo.isWritable())
+        {
+            return 0;
+        }
+        else
+        {
+            return -2;
+        }
+    }
+    else
+    {
+        return -1;
+    }
+}
+
+int FILES::gocurrentdirandcheckpermissions() {
+    return FILES::checkpermission(FILES::getcurrentdir());
+}

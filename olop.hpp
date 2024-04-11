@@ -12,7 +12,7 @@ class MAIN {
 public:
     ~MAIN();
     static const QString HOME;
-    static const QString VERSION;
+    static QString VERSION;
     static const QString O_DIR;
     static const QString APP_DIR;
     static QHttpServer httpServer;
@@ -54,11 +54,17 @@ public:
     static int findAvailablePort();
     static QByteArray Download(const QUrl Url);
     static QString port;
+#ifdef Q_OS_LINUX
+    static int goalpha();
+#endif
 };
 
 class FILES {
 public:
     static bool unZip(const QString &file, const QString &dest, std::function<void()> cleaningCallback = nullptr);
+    static int gocurrentdirandcheckpermissions();
+    static QString getcurrentdir();
+    static int checkpermission(QString path);
 };
 
 #endif // OLOP_HPP

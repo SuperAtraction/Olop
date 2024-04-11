@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 13.0.0, 2024-04-11T17:59:52. -->
+<!-- Written by QtCreator 13.0.0, 2024-04-11T18:03:50. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -151,9 +151,10 @@
      </valuemap>
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.2">
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
-      <value type="QString" key="ProjectExplorer.CopyStep.Source">%{BuildConfig:BuildDirectory:NativeFilePath}/Olop</value>
-      <value type="QString" key="ProjectExplorer.CopyStep.Target">/media/superatraction/DATA/Documents/Qt/Olop/build/OlopLinux</value>
-      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.CopyFileStep</value>
+      <value type="QString" key="ProjectExplorer.ProcessStep.Arguments">%{BuildConfig:BuildDirectory:NativeFilePath}/Olop %{BuildConfig:BuildDirectory:Path}/OlopLinux</value>
+      <value type="QString" key="ProjectExplorer.ProcessStep.Command">cp</value>
+      <value type="QString" key="ProjectExplorer.ProcessStep.WorkingDirectory">%{buildDir}</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.ProcessStep</value>
      </valuemap>
      <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">3</value>
      <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Compiler</value>

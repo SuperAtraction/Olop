@@ -39,7 +39,3 @@ jobs:
       run: |
         wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
         bash upload.sh *.AppImage*
-
-  except:
-    - # Do not build tags that we create when we upload to GitHub Releases
-    - /^(?i:continuous)/

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 13.0.0, 2024-04-11T18:03:50. -->
+<!-- Written by QtCreator 13.0.0, 2024-04-11T20:28:21. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -227,7 +227,28 @@
    <value type="qlonglong" key="ProjectExplorer.Target.BuildConfigurationCount">3</value>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.DeployConfiguration.0">
     <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
-     <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">0</value>
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProcessStep.Arguments"> builder.py -force -qtdir /home/superatraction/Qt/6.7.0/gcc_64 -out-dir linuxbuild/ -qmlscandir ../ OlopLinux</value>
+      <value type="QString" key="ProjectExplorer.ProcessStep.Command">python3</value>
+      <value type="QString" key="ProjectExplorer.ProcessStep.WorkingDirectory">%{BuildConfig:BuildDirectory:Path}</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.ProcessStep</value>
+     </valuemap>
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.1">
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProcessStep.Arguments">&quot;$(ls)&quot; &gt; files.ls</value>
+      <value type="QString" key="ProjectExplorer.ProcessStep.Command">echo</value>
+      <value type="QString" key="ProjectExplorer.ProcessStep.WorkingDirectory">%{BuildConfig:BuildDirectory:Path}/linuxbuild/</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.ProcessStep</value>
+     </valuemap>
+     <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.2">
+      <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
+      <value type="QString" key="ProjectExplorer.ProcessStep.Arguments">-r OlopLinux.zip linuxbuild/</value>
+      <value type="QString" key="ProjectExplorer.ProcessStep.Command">zip</value>
+      <value type="QString" key="ProjectExplorer.ProcessStep.WorkingDirectory">%{BuildConfig:BuildDirectory:Path}</value>
+      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.ProcessStep</value>
+     </valuemap>
+     <value type="qlonglong" key="ProjectExplorer.BuildStepList.StepsCount">3</value>
      <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Déploiement</value>
      <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Déploiement</value>
      <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.BuildSteps.Deploy</value>

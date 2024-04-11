@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<RCC>
-    <qresource prefix="/">
-        <file alias="assets/Linux.html">../../assets/Linux.html</file>
-        <file alias="assets/linux.js">../../assets/linux.js</file>
-    </qresource>
-</RCC>

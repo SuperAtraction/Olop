@@ -1,3 +1,4 @@
-.so
-.6
-.56 
+build/Desktop*
+build/*.zip
+build/*build/*
+build/builder.py

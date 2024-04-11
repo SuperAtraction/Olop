@@ -20,3 +20,39 @@ Olop a été initialisé
 [11/04/24 17:54:03.214][INFO][UI] [CONSOLE] Loading.html:1 Uncaught ReferenceError: MAIN is not defined
 [11/04/24 17:54:04.104][INFO][UI] Release of profile requested but WebEnginePage still not deleted. Expect troubles !
 [11/04/24 17:54:04.193][INFO]Olop est arrêté. À bientôt !
+------- Nouveau Log Olop ------
+Logs du 11/04/2024 18:00
+[11/04/24 18:00:12.830][INFO]"Olop est en mode 1"
+[11/04/24 18:00:12.850][INFO][SERVEUR] qt.core.qobject.connect: QObject::connect(QObject, Unknown): invalid nullptr parameter
+[11/04/24 18:00:12.850][INFO][UI] qt.core.qobject.connect: QObject::connect(QObject, Unknown): invalid nullptr parameter
+[11/04/24 18:00:12.904][INFO][UI] "Olop est en mode 3"
+[11/04/24 18:00:12.907][INFO][SERVEUR] "Olop est en mode 2"
+"Lancement d'Olop sur le port 41427"
+[11/04/24 18:00:12.913][INFO][UI] Path override failed for key base::DIR_APP_DICTIONARIES and path '/media/superatraction/DATA/Documents/Qt/Olop/build/Desktop_Qt_6_7_0-Release/qtwebengine_dictionaries'
+[11/04/24 18:00:12.938][INFO][UI] Path override failed for key base::DIR_APP_DICTIONARIES and path '/home/superatraction/Qt/6.7.0/gcc_64/libexec/qtwebengine_dictionaries'
+[11/04/24 18:00:12.941][INFO][UI] Path override failed for key base::DIR_APP_DICTIONARIES and path '/home/superatraction/Qt/6.7.0/gcc_64/libexec/qtwebengine_dictionaries'
+[11/04/24 18:00:13.028][INFO][UI] QObject::connect: signal not found in MainWindow
+[11/04/24 18:00:13.028][INFO][UI] "Olop-threads-41427"
+[11/04/24 18:00:13.028][INFO][UI] Olop a été initialisé
+[11/04/24 18:00:13.028][INFO][UI] "41427"
+[11/04/24 18:00:13.079][INFO][UI] [CONSOLE] 1: Uncaught ReferenceError: MAIN is not defined
+[11/04/24 18:00:14.408][INFO][UI] Release of profile requested but WebEnginePage still not deleted. Expect troubles !
+[11/04/24 18:00:14.467][INFO]Olop est arrêté. À bientôt !
+------- Nouveau Log Olop ------
+Logs du 11/04/2024 18:00
+[11/04/24 18:00:49.880][INFO]"Olop est en mode 1"
+[11/04/24 18:00:49.901][INFO][SERVEUR] qt.core.qobject.connect: QObject::connect(QObject, Unknown): invalid nullptr parameter
+[11/04/24 18:00:49.902][INFO][UI] qt.core.qobject.connect: QObject::connect(QObject, Unknown): invalid nullptr parameter
+[11/04/24 18:00:49.956][INFO][SERVEUR] "Olop est en mode 2"
+"Lancement d'Olop sur le port 33687"
+[11/04/24 18:00:49.956][INFO][UI] "Olop est en mode 3"
+[11/04/24 18:00:49.965][INFO][UI] Path override failed for key base::DIR_APP_DICTIONARIES and path '/media/superatraction/DATA/Documents/Qt/Olop/build/Desktop_Qt_6_7_0-Release/qtwebengine_dictionaries'
+[11/04/24 18:00:49.993][INFO][UI] Path override failed for key base::DIR_APP_DICTIONARIES and path '/home/superatraction/Qt/6.7.0/gcc_64/libexec/qtwebengine_dictionaries'
+[11/04/24 18:00:49.994][INFO][UI] Path override failed for key base::DIR_APP_DICTIONARIES and path '/home/superatraction/Qt/6.7.0/gcc_64/libexec/qtwebengine_dictionaries'
+[11/04/24 18:00:50.095][INFO][UI] QObject::connect: signal not found in MainWindow
+[11/04/24 18:00:50.095][INFO][UI] "Olop-threads-33687"
+Olop a été initialisé
+"33687"
+[11/04/24 18:00:50.145][INFO][UI] [CONSOLE] 1: Uncaught ReferenceError: MAIN is not defined
+[11/04/24 18:00:58.607][INFO][UI] Release of profile requested but WebEnginePage still not deleted. Expect troubles !
+[11/04/24 18:00:58.681][INFO]Olop est arrêté. À bientôt !

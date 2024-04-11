@@ -1,0 +1,37 @@
+name: Build AppImage
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y wget
+
+    - name: Download LinuxDeployQt
+      run: |
+        wget https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage
+        chmod +x linuxdeployqt-continuous-x86_64.AppImage
+
+    - name: Build AppImage
+      run: |
+        ls
+
+    - name: Upload AppImage
+      uses: actions/upload-artifact@v2
+      with:
+        name: appimage
+        path: path/to/your/application.AppImage

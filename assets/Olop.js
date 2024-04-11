@@ -577,6 +577,7 @@ async function closeMinimizedWindowList() {
     }
 }
 
+
         function decodeApp(data) {
             var lignesSeparate = data.split('\n').filter(Boolean);
             var result = [];

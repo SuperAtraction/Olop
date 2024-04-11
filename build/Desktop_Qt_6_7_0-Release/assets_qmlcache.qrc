@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<RCC>
+    <qresource prefix="/">
+        <file alias="assets/certificate.crt">../../assets/certificate.crt</file>
+        <file alias="assets/private.key">../../assets/private.key</file>
+        <file alias="assets/qt-logo.png">../../assets/qt-logo.png</file>
+        <file alias="assets/home.html">../../assets/home.html</file>
+        <file alias="assets/index.html">../../assets/index.html</file>
+        <file alias="assets/jquery.js">../../assets/jquery.js</file>
+        <file alias="assets/olop.ico">../../assets/olop.ico</file>
+        <file alias="assets/Library.html">../../assets/Library.html</file>
+        <file alias="assets/Library/Addapp.html">../../assets/Library/Addapp.html</file>
+        <file alias="assets/Store.html">../../assets/Store.html</file>
+        <file alias="assets/settings.html">../../assets/settings.html</file>
+        <file alias="assets/Olop.js">../../assets/Olop.js</file>
+        <file alias="assets/pages.txt">../../assets/pages.txt</file>
+        <file alias="assets/images.txt">../../assets/images.txt</file>
+        <file alias="assets/avertissement.html">../../assets/avertissement.html</file>
+        <file alias="assets/panel.css">../../assets/panel.css</file>
+        <file alias="assets/panel.js">../../assets/panel.js</file>
+        <file alias="assets/Loading.html">../../assets/Loading.html</file>
+    </qresource>
+</RCC>

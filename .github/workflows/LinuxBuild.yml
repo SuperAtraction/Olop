@@ -28,10 +28,10 @@ jobs:
 
     - name: Build AppImage
       run: |
-        ls
+        ./linuxdeployqt-continuous-x86_64.AppImage build/OlopLinux -appimage
 
     - name: Upload AppImage
       uses: actions/upload-artifact@v2
       with:
         name: appimage
-        path: path/to/your/application.AppImage
+        path: build/OlopLinux/Olop.AppImage

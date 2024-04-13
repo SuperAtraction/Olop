@@ -8,5 +8,10 @@
 ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/superatraction/olop?logo=github&label=Number%20of%20issues&cacheSeconds=300)
 ![GitHub language count](https://img.shields.io/github/languages/count/superatraction/olop?logo=github&label=Number%20of%20languages&cacheSeconds=600)
 ![GitHub top language](https://img.shields.io/github/languages/top/superatraction/olop?logo=c%2B%2B&cacheSeconds=6000)
-#
+![GitHub commits since latest release](https://img.shields.io/github/commits-since/superatraction/olop/latest?include_prereleases&logo=github)
+![Github Created At](https://img.shields.io/github/created-at/superatraction/olop)
+![GitHub last commit](https://img.shields.io/github/last-commit/superatraction/olop)
+![GitHub Release Date](https://img.shields.io/github/release-date/superatraction/olop?label=Lastest%20release%20date)
+![GitHub Release Date](https://img.shields.io/github/release-date-pre/superatraction/olop?label=lastest%20pre-release%20date)
+
 Olop
